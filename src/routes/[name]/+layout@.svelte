@@ -3,12 +3,6 @@
 	export let data: LayoutData;
 
 	import { signOut } from '@auth/sveltekit/client';
-
-	const interval = new Promise<void>((resolve) => {
-		setTimeout(() => {
-			resolve();
-		}, 5000);
-	});
 </script>
 
 <header class="fixed top-0 left-0 w-full h-14 flex items-center justify-between py-2 bg-white z-50">
@@ -28,14 +22,4 @@
 	</div>
 </header>
 
-<main class="my-16">
-	<slot />
-</main>
-
-<footer class="fixed bottom-0 left-0 w-full h-16 text-center bg-white">
-	{#await interval}
-		<p class="py-2 bg-red-600">Reload detected</p>
-	{:then _}
-		<p class="py-2">Footer</p>
-	{/await}
-</footer>
+<slot />

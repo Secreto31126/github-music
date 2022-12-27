@@ -1,6 +1,8 @@
 <script lang="ts">
 	import type { PageData } from './$types';
+
 	import { page } from '$app/stores';
+	import { fade, fly } from 'svelte/transition';
 
 	export let data: PageData;
 
@@ -12,6 +14,7 @@
 	} | null = null;
 
 	$: if (data.song && data.song.path !== song?.path) {
+		console.log(data.song.cover);
 		song = {
 			name: data.song.path.split('/').pop() || 'Error',
 			path: data.song.path,
@@ -40,27 +43,18 @@
 			files: data.list.files
 		};
 	}
+
+	function missingImg(event: Event) {
+		const target = event.target as HTMLImageElement;
+		target.src = '/favicon.png';
+	}
 </script>
 
 <svelte:head>
 	<title>{song ? song.name : list ? list.name : 'GitHub Music'}</title>
 </svelte:head>
 
-<div class="flex flex-col gap-2 mx-2">
-	{#if song}
-		<p>Now Playing: {song.name}</p>
-		{#if song.url}
-			<a href={song.url}>Link to audio</a>
-			{#key song.url}
-				<audio controls autoplay>
-					<source src={song.url} type="audio/mpeg" />
-					Your browser does not support the audio element.
-				</audio>
-			{/key}
-		{:else}
-			<p>Failed to get audio URL</p>
-		{/if}
-	{/if}
+<main class="flex flex-col gap-4 mx-2 my-16">
 	{#if !list.root}
 		<a
 			href={$page.url.pathname
@@ -73,6 +67,7 @@
 	{:else}
 		<p>Seeing playlist: /</p>
 	{/if}
+
 	{#each list.files as file}
 		<a
 			href="{data.song
@@ -80,8 +75,46 @@
 				: $page.url.pathname}/{file.filename}"
 			class="flex items-center space-x-2 h-16 w-fit"
 		>
-			<img src={file.cover || '/favicon.png'} alt="Cover" class="aspect-square h-full" />
+			<img
+				src={file.cover || '/favicon.png'}
+				alt="Cover"
+				on:error={missingImg}
+				class="aspect-square h-full"
+			/>
 			<p>{file.filename}</p>
 		</a>
 	{/each}
-</div>
+
+	{#if song}
+		<span class="mb-16" />
+	{/if}
+</main>
+
+{#if song}
+	<footer
+		class="fixed bottom-0 left-0 flex w-full h-32 text-center bg-gray-100"
+		transition:fly={{ y: 200 }}
+	>
+		<div class="flex justify-center items-center w-full h-full gap-2" transition:fade>
+			<img
+				src={song.cover || '/favicon.png'}
+				alt="Cover"
+				on:error={missingImg}
+				class="aspect-square h-2/3"
+			/>
+			<div class="flex flex-col gap-2">
+				<p>{song.name}</p>
+				{#key song.url}
+					{#if song.url}
+						<audio controls autoplay>
+							<source src={song.url} type="audio/mpeg" />
+							Your browser does not support the audio element.
+						</audio>
+					{:else}
+						<p>Failed to get audio URL</p>
+					{/if}
+				{/key}
+			</div>
+		</div>
+	</footer>
+{/if}
