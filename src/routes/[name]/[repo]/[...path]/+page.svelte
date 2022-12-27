@@ -8,17 +8,36 @@
 		name: string;
 		path: string;
 		url: string | null;
+		cover: string | null;
+	} | null = null;
+
+	let list: {
+		name: string;
+		path: string;
+		cover: string | null;
+		files: Array<{
+			filename: string;
+			cover: string | null;
+		}>;
 	} | null = null;
 
 	$: if (data.song && data.song.path !== song?.path) {
 		song = {
 			name: data.song.path.split('/').pop() || 'Error',
 			path: data.song.path,
-			url: data.song.url || null
+			url: data.song.url,
+			cover: data.song.cover
 		};
 	}
 
-	$: list = data.list.path.split('/').at(data.song ? -2 : -1) || '/';
+	$: if (data.list && data.list.path !== list?.path) {
+		list = {
+			name: data.list.path.split('/').at(song ? -2 : -1) || '/',
+			path: data.list.path,
+			cover: data.list.cover,
+			files: data.list.files
+		};
+	}
 </script>
 
 <svelte:head>
@@ -42,24 +61,29 @@
 			{/if}
 		{/if}
 	{/key}
-	{#if list !== '/'}
-		<a href={($page.url.pathname || '').split('/').slice(0, -1).join('/')}>
-			Seeing playlist: {list}
-		</a>
-	{:else}
-		<p>Seeing playlist: /</p>
-	{/if}
-	{#each data.list.files as file}
-		<a
-			href="{$page.url.pathname || ''}/{file.filename}"
-			class="flex items-center space-x-2 h-16 w-fit"
-		>
-			<img
-				src={file.cover || data.list.cover || '/favicon.png'}
-				alt=""
-				class="aspect-square h-full"
-			/>
-			<p>{file.filename}</p>
-		</a>
-	{/each}
+	{#key list}
+		{#if list}
+			{#if list.name !== '/'}
+				<a
+					href={($page.url.pathname || '')
+						.split('/')
+						.slice(0, data.song ? -2 : -1)
+						.join('/')}
+				>
+					Seeing playlist: {list.name}
+				</a>
+			{:else}
+				<p>Seeing playlist: /</p>
+			{/if}
+			{#each list.files as file}
+				<a
+					href="{$page.url.pathname || ''}/{file.filename}"
+					class="flex items-center space-x-2 h-16 w-fit"
+				>
+					<img src={file.cover || '/favicon.png'} alt="Cover" class="aspect-square h-full" />
+					<p>{file.filename}</p>
+				</a>
+			{/each}
+		{/if}
+	{/key}
 </div>

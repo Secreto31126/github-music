@@ -42,14 +42,14 @@ export const load = (async ({ params, cookies, url, setHeaders }) => {
 		}
 	}
 
-	const list = {
-		path,
-		cover: null as string | null,
-		files: [] as Array<{
+	let list = null as {
+		path: string;
+		cover: string | null;
+		files: Array<{
 			filename: string;
 			cover: string | null;
-		}>
-	};
+		}>;
+	} | null;
 
 	let song = null as {
 		cover: string | null;
@@ -67,6 +67,12 @@ export const load = (async ({ params, cookies, url, setHeaders }) => {
 
 	// Parse the files in the directory
 	if (Object.keys(dir).length) {
+		list = {
+			path,
+			cover: null,
+			files: []
+		};
+
 		for (const filename in dir) {
 			// If folder
 			if (Object.keys(dir[filename]).length) {
