@@ -47,43 +47,41 @@
 </svelte:head>
 
 <div class="flex flex-col gap-2 mx-2">
-	{#key song}
-		{#if song}
-			<p>Now Playing: {song.name}</p>
-			{#if song.url}
-				<a href={song.url}>Link to audio</a>
+	{#if song}
+		<p>Now Playing: {song.name}</p>
+		{#if song.url}
+			<a href={song.url}>Link to audio</a>
+			{#key song.url}
 				<audio controls autoplay>
 					<source src={song.url} type="audio/mpeg" />
 					Your browser does not support the audio element.
 				</audio>
-
-				<audio src={song.url} class="h-8 w-8" />
-			{:else}
-				<p>Failed to get audio URL</p>
-			{/if}
-		{/if}
-	{/key}
-	{#key list}
-		{#if !list.root}
-			<a
-				href={$page.url.pathname
-					.split('/')
-					.slice(0, data.song ? -2 : -1)
-					.join('/')}
-			>
-				Seeing playlist: {list.name}
-			</a>
+			{/key}
 		{:else}
-			<p>Seeing playlist: /</p>
+			<p>Failed to get audio URL</p>
 		{/if}
-		{#each list.files as file}
-			<a
-				href="{$page.url.pathname || ''}/{file.filename}"
-				class="flex items-center space-x-2 h-16 w-fit"
-			>
-				<img src={file.cover || '/favicon.png'} alt="Cover" class="aspect-square h-full" />
-				<p>{file.filename}</p>
-			</a>
-		{/each}
-	{/key}
+	{/if}
+	{#if !list.root}
+		<a
+			href={$page.url.pathname
+				.split('/')
+				.slice(0, data.song ? -2 : -1)
+				.join('/')}
+		>
+			Seeing playlist: {list.name}
+		</a>
+	{:else}
+		<p>Seeing playlist: /</p>
+	{/if}
+	{#each list.files as file}
+		<a
+			href="{data.song
+				? $page.url.pathname.split('/').slice(0, -1).join('/')
+				: $page.url.pathname}/{file.filename}"
+			class="flex items-center space-x-2 h-16 w-fit"
+		>
+			<img src={file.cover || '/favicon.png'} alt="Cover" class="aspect-square h-full" />
+			<p>{file.filename}</p>
+		</a>
+	{/each}
 </div>
