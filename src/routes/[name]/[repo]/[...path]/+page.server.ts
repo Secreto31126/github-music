@@ -2,6 +2,10 @@ import { redirect } from '@sveltejs/kit';
 import { getRepoFile, getRepoStructure } from '$lib/server/github';
 import type { PageServerLoad } from './$types';
 
+type Node = {
+	[path: string]: Node;
+};
+
 export const load = (async ({ params, cookies, url, setHeaders }) => {
 	const name = params.name;
 	const repo = params.repo;
@@ -22,10 +26,6 @@ export const load = (async ({ params, cookies, url, setHeaders }) => {
 		'cache-control':
 			tree_request.headers['cache-control'] || 'private, max-age=86400, s-maxage=86400'
 	});
-
-	type Node = {
-		[path: string]: Node;
-	};
 
 	const root = {} as Node;
 	for (const node of tree) {
@@ -68,84 +68,42 @@ export const load = (async ({ params, cookies, url, setHeaders }) => {
 	// Parse the files in the directory
 	if (Object.keys(dir).length) {
 		for (const filename in dir) {
-			if (Object.keys(dir[filename]).length || filename.endsWith('.mp3')) {
-				let cover = null;
-				for (const subfile in dir[filename]) {
-					if (subfile.endsWith('.jpg') || subfile.endsWith('.png')) {
-						try {
-							const file = await getRepoFile(
-								token,
-								name,
-								repo,
-								`${list.path}/${filename}/${subfile}`
-							);
-
-							if (!Array.isArray(file.data)) {
-								cover = file.data.download_url;
-								break;
-							}
-						} catch (error) {
-							console.error(error);
-						}
-					}
-				}
+			// If folder
+			if (Object.keys(dir[filename]).length) {
+				const cover = await findCover(token, name, repo, dir[filename], `${list.path}/${filename}`);
 
 				list.files.push({
 					filename,
 					cover
 				});
-
-				continue;
-			}
-
-			if (filename.endsWith('.jpg') || filename.endsWith('.png')) {
+			} else if (isAudio(filename)) {
+				list.files.push({
+					filename,
+					cover: list.cover
+				});
+			} else if (isImage(filename) && !list.cover) {
 				try {
-					const file = await getRepoFile(token, name, repo, `${list.path}/${filename}`);
-					if (!Array.isArray(file.data)) {
-						list.cover = file.data.download_url;
-					}
+					list.cover = await getDownloadUrl(token, name, repo, `${list.path}/${filename}`);
 				} catch (error) {
 					console.error(error);
 				}
-
-				continue;
 			}
 		}
 
+		// Fill missing covers
 		for (const file of list.files) if (!file.cover) file.cover = list.cover;
-	}
-
-	// No kids and finishs with .mp3, probably a song
-	else if (path.endsWith('.mp3')) {
-		let cover = null as string | null;
-		for (const filename in parent) {
-			if (filename.endsWith('.jpg') || filename.endsWith('.png')) {
-				try {
-					const file = await getRepoFile(
-						token,
-						name,
-						repo,
-						`${list.path.split('/').slice(0, -1).join('/')}/${filename}`
-					);
-
-					if (!Array.isArray(file.data)) {
-						cover = file.data.download_url;
-					}
-				} catch (error) {
-					console.error(error);
-				}
-
-				break;
-			}
-		}
+	} else if (isAudio(path)) {
+		const cover = await findCover(
+			token,
+			name,
+			repo,
+			parent || ({} as Node),
+			path.split('/').slice(0, -1).join('/')
+		);
 
 		let url = null as string | null;
 		try {
-			const file = await getRepoFile(token, name, repo, path);
-
-			if (!Array.isArray(file.data)) {
-				url = file.data.download_url;
-			}
+			url = await getDownloadUrl(token, name, repo, path);
 		} catch (error) {
 			console.error(error);
 		}
@@ -162,3 +120,35 @@ export const load = (async ({ params, cookies, url, setHeaders }) => {
 		song
 	};
 }) satisfies PageServerLoad;
+
+async function findCover(token: string, name: string, repo: string, dir: Node, path: string) {
+	for (const subfile in dir) {
+		if (isImage(subfile)) {
+			try {
+				return getDownloadUrl(token, name, repo, `${path}/${subfile}`);
+			} catch (error) {
+				console.error(error);
+			}
+		}
+	}
+
+	return null;
+}
+
+async function getDownloadUrl(token: string, name: string, repo: string, path: string) {
+	const file = await getRepoFile(token, name, repo, path);
+
+	if (!Array.isArray(file.data)) {
+		return file.data.download_url;
+	}
+
+	return null;
+}
+
+function isImage(filename: string) {
+	return filename.endsWith('.jpg') || filename.endsWith('.png');
+}
+
+function isAudio(filename: string) {
+	return filename.endsWith('.mp3');
+}
