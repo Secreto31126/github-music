@@ -23,8 +23,7 @@ export const load = (async ({ params, cookies, url, setHeaders }) => {
 
 	setHeaders({
 		age: '0',
-		'cache-control':
-			tree_request.headers['cache-control'] || 'private, max-age=86400, s-maxage=86400'
+		'cache-control': tree_request.headers['cache-control'] || 'private, max-age=300, s-maxage=300'
 	});
 
 	const root = {} as Node;
