@@ -41,7 +41,7 @@
 </script>
 
 <svelte:head>
-	<title>{song ? song.name : list}</title>
+	<title>{song ? song.name : list ? list.name : 'GitHub Music'}</title>
 </svelte:head>
 
 <div class="flex flex-col gap-2 mx-2">
