@@ -11,16 +11,6 @@
 		cover: string | null;
 	} | null = null;
 
-	let list: {
-		name: string;
-		path: string;
-		cover: string | null;
-		files: Array<{
-			filename: string;
-			cover: string | null;
-		}>;
-	} | null = null;
-
 	$: if (data.song && data.song.path !== song?.path) {
 		song = {
 			name: data.song.path.split('/').pop() || 'Error',
@@ -30,9 +20,21 @@
 		};
 	}
 
-	$: if (data.list && data.list.path !== list?.path) {
+	let list: {
+		root: boolean;
+		name: string;
+		path: string;
+		cover: string | null;
+		files: Array<{
+			filename: string;
+			cover: string | null;
+		}>;
+	};
+
+	$: if (data.list.path !== list?.path) {
 		list = {
-			name: data.list.path.split('/').at(song ? -2 : -1) || '/',
+			root: data.list.root,
+			name: data.list.root ? '/' : data.list.path.split('/').at(-1) || '/',
 			path: data.list.path,
 			cover: data.list.cover,
 			files: data.list.files
@@ -62,28 +64,26 @@
 		{/if}
 	{/key}
 	{#key list}
-		{#if list}
-			{#if list.name !== '/'}
-				<a
-					href={($page.url.pathname || '')
-						.split('/')
-						.slice(0, data.song ? -2 : -1)
-						.join('/')}
-				>
-					Seeing playlist: {list.name}
-				</a>
-			{:else}
-				<p>Seeing playlist: /</p>
-			{/if}
-			{#each list.files as file}
-				<a
-					href="{$page.url.pathname || ''}/{file.filename}"
-					class="flex items-center space-x-2 h-16 w-fit"
-				>
-					<img src={file.cover || '/favicon.png'} alt="Cover" class="aspect-square h-full" />
-					<p>{file.filename}</p>
-				</a>
-			{/each}
+		{#if !list.root}
+			<a
+				href={$page.url.pathname
+					.split('/')
+					.slice(0, data.song ? -2 : -1)
+					.join('/')}
+			>
+				Seeing playlist: {list.name}
+			</a>
+		{:else}
+			<p>Seeing playlist: /</p>
 		{/if}
+		{#each list.files as file}
+			<a
+				href="{$page.url.pathname || ''}/{file.filename}"
+				class="flex items-center space-x-2 h-16 w-fit"
+			>
+				<img src={file.cover || '/favicon.png'} alt="Cover" class="aspect-square h-full" />
+				<p>{file.filename}</p>
+			</a>
+		{/each}
 	{/key}
 </div>

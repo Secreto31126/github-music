@@ -1,4 +1,4 @@
-import { redirect } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import { getRepoFile, getRepoStructure } from '$lib/server/github';
 import type { PageServerLoad } from './$types';
 
@@ -42,14 +42,17 @@ export const load = (async ({ params, cookies, url, setHeaders }) => {
 		}
 	}
 
-	let list = null as {
-		path: string;
-		cover: string | null;
-		files: Array<{
-			filename: string;
-			cover: string | null;
-		}>;
-	} | null;
+	let dir: Node | undefined = root;
+	let parent = null as Node | null;
+	for (const filename of path.split('/')) {
+		if (!filename || !dir) break;
+		parent = dir;
+		dir = dir[filename];
+	}
+
+	if (!dir) {
+		throw error(404, { message: 'Path not found' });
+	}
 
 	let song = null as {
 		cover: string | null;
@@ -57,48 +60,8 @@ export const load = (async ({ params, cookies, url, setHeaders }) => {
 		path: string;
 	} | null;
 
-	let dir = root;
-	let parent = null as Node | null;
-	for (const filename of path.split('/')) {
-		if (!filename) break;
-		parent = dir;
-		dir = dir[filename];
-	}
-
-	// Parse the files in the directory
-	if (Object.keys(dir).length) {
-		list = {
-			path,
-			cover: null,
-			files: []
-		};
-
-		for (const filename in dir) {
-			// If folder
-			if (Object.keys(dir[filename]).length) {
-				const cover = await findCover(token, name, repo, dir[filename], `${list.path}/${filename}`);
-
-				list.files.push({
-					filename,
-					cover
-				});
-			} else if (isAudio(filename)) {
-				list.files.push({
-					filename,
-					cover: list.cover
-				});
-			} else if (isImage(filename) && !list.cover) {
-				try {
-					list.cover = await getDownloadUrl(token, name, repo, `${list.path}/${filename}`);
-				} catch (error) {
-					console.error(error);
-				}
-			}
-		}
-
-		// Fill missing covers
-		for (const file of list.files) if (!file.cover) file.cover = list.cover;
-	} else if (isAudio(path)) {
+	// If it's not a folder and has an audio file extension
+	if (!Object.keys(dir).length && isAudio(path)) {
 		const cover = await findCover(
 			token,
 			name,
@@ -120,6 +83,51 @@ export const load = (async ({ params, cookies, url, setHeaders }) => {
 			url
 		};
 	}
+
+	const list = {
+		root: parent === null,
+		path: song ? path.split('/').slice(0, -1).join('/') : path,
+		cover: null as string | null,
+		files: [] as Array<{
+			filename: string;
+			cover: string | null;
+		}>
+	};
+
+	// If the path is a song, use the parent folder
+	const listed_dir = song ? parent || root : dir;
+
+	for (const filename in listed_dir) {
+		// If folder
+		if (Object.keys(listed_dir[filename]).length) {
+			const cover = await findCover(
+				token,
+				name,
+				repo,
+				listed_dir[filename],
+				`${list.path}/${filename}`
+			);
+
+			list.files.push({
+				filename,
+				cover
+			});
+		} else if (isAudio(filename)) {
+			list.files.push({
+				filename,
+				cover: list.cover
+			});
+		} else if (isImage(filename) && !list.cover) {
+			try {
+				list.cover = await getDownloadUrl(token, name, repo, `${list.path}/${filename}`);
+			} catch (error) {
+				console.error(error);
+			}
+		}
+	}
+
+	// Fill missing covers
+	for (const file of list.files) if (!file.cover) file.cover = list.cover;
 
 	return {
 		list,
