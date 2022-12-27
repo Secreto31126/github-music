@@ -10,7 +10,8 @@ export const load = (async ({ locals, cookies }) => {
 
 	if (session?.access_token) {
 		cookies.set('access_token', session.access_token, {
-			maxAge: parseInt(session.expires)
+			maxAge: parseInt(session.expires),
+			path: '/'
 		});
 	}
 

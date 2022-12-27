@@ -2,7 +2,7 @@ import { redirect } from '@sveltejs/kit';
 import { getRepoFile, getRepoStructure } from '$lib/server/github';
 import type { PageServerLoad } from './$types';
 
-export const load = (async ({ params, cookies, url }) => {
+export const load = (async ({ params, cookies, url, setHeaders }) => {
 	const name = params.name;
 	const repo = params.repo;
 	const path = params.path;
@@ -14,7 +14,14 @@ export const load = (async ({ params, cookies, url }) => {
 		throw redirect(302, '/login');
 	}
 
-	const tree = (await getRepoStructure(token, name, repo, branch)).data.tree;
+	const tree_request = await getRepoStructure(token, name, repo, branch);
+	const tree = tree_request.data.tree;
+
+	setHeaders({
+		age: '0',
+		'cache-control':
+			tree_request.headers['cache-control'] || 'private, max-age=86400, s-maxage=86400'
+	});
 
 	type Node = {
 		[path: string]: Node;
