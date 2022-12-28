@@ -1,6 +1,9 @@
 <script lang="ts">
 	import type { PageData } from './$types';
+
 	import { page } from '$app/stores';
+	import Player from '$lib/Player.svelte';
+	import { fade, fly } from 'svelte/transition';
 
 	export let data: PageData;
 
@@ -8,58 +11,92 @@
 		name: string;
 		path: string;
 		url: string | null;
+		cover: string | null;
 	} | null = null;
 
-	$: if (data.song && data.song.path !== song?.path) {
+	$: if (data.song) {
 		song = {
 			name: data.song.path.split('/').pop() || 'Error',
 			path: data.song.path,
-			url: data.song.url || null
+			url: data.song.url,
+			cover: data.song.cover
 		};
 	}
 
-	$: list = data.list.path.split('/').at(data.song ? -2 : -1) || '/';
+	let list: {
+		root: boolean;
+		name: string;
+		path: string;
+		cover: string | null;
+		files: Array<{
+			filename: string;
+			cover: string | null;
+		}>;
+	};
+
+	$: if (data.list.path !== list?.path) {
+		list = {
+			root: data.list.root,
+			name: data.list.root ? '/' : data.list.path.split('/').at(-1) || '/',
+			path: data.list.path,
+			cover: data.list.cover,
+			files: data.list.files
+		};
+	}
+
+	function missingImg(event: Event) {
+		const target = event.target as HTMLImageElement;
+		target.src = '/favicon.png';
+	}
 </script>
 
 <svelte:head>
-	<title>{song ? song.name : list}</title>
+	<title>{song ? song.name : list ? list.name : 'GitHub Music'}</title>
 </svelte:head>
 
-<div class="flex flex-col gap-2 mx-2">
-	{#key song}
-		{#if song}
-			<p>Now Playing: {song.name}</p>
-			{#if song.url}
-				<a href={song.url}>Link to audio</a>
-				<audio controls autoplay>
-					<source src={song.url} type="audio/mpeg" />
-					Your browser does not support the audio element.
-				</audio>
-
-				<audio src={song.url} class="h-8 w-8" />
-			{:else}
-				<p>Failed to get audio URL</p>
-			{/if}
-		{/if}
-	{/key}
-	{#if list !== '/'}
-		<a href={($page.url.pathname || '').split('/').slice(0, -1).join('/')}>
-			Seeing playlist: {list}
+<main class="flex flex-col gap-4 mx-2 mb-16">
+	{#if !list.root}
+		<a
+			href="{$page.url.pathname
+				.split('/')
+				.slice(0, data.song ? -2 : -1)
+				.join('/')}{$page.url.search}"
+		>
+			Seeing playlist: {list.name}
 		</a>
 	{:else}
 		<p>Seeing playlist: /</p>
 	{/if}
-	{#each data.list.files as file}
+
+	{#each list.files as file}
 		<a
-			href="{$page.url.pathname || ''}/{file.filename}"
+			href="{data.song
+				? $page.url.pathname.split('/').slice(0, -1).join('/')
+				: $page.url.pathname}/{file.filename}{$page.url.search}"
 			class="flex items-center space-x-2 h-16 w-fit"
 		>
 			<img
-				src={file.cover || data.list.cover || '/favicon.png'}
-				alt=""
+				src={file.cover || '/favicon.png'}
+				alt="Cover"
+				on:error={missingImg}
 				class="aspect-square h-full"
 			/>
 			<p>{file.filename}</p>
 		</a>
 	{/each}
-</div>
+
+	{#if song}
+		<span class="mb-16" />
+	{/if}
+</main>
+
+{#if song}
+	<footer
+		class="fixed bottom-0 left-0 flex w-full h-32 text-center bg-gray-100"
+		transition:fly={{ y: 200 }}
+	>
+		<div class="w-full h-full" transition:fade>
+			<Player {song} />
+		</div>
+	</footer>
+{/if}
