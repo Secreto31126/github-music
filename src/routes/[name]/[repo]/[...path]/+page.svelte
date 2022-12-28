@@ -3,9 +3,10 @@
 
 	import Player from '$lib/Player.svelte';
 
-	import { page } from '$app/stores';
+	import { navigating, page } from '$app/stores';
 	import { get } from 'svelte/store';
 	import { fade, fly } from 'svelte/transition';
+	import { invalidate, invalidateAll } from '$app/navigation';
 
 	export let data: PageData;
 
@@ -16,13 +17,15 @@
 		cover: string | null;
 	} | null = null;
 
-	$: if (data.song) {
+	$: if (data.song && data.song.update) {
 		song = {
 			name: data.song.path.split('/').pop() || 'Error',
 			path: data.song.path,
 			url: data.song.url,
 			cover: data.song.cover
 		};
+
+		data.song.update = false;
 	}
 
 	let list: {
@@ -49,6 +52,10 @@
 	function missingImg(event: Event) {
 		const target = event.target as HTMLImageElement;
 		target.src = '/favicon.png';
+	}
+
+	$: if ($navigating && $navigating.from?.url.href === $navigating.to?.url.href) {
+		invalidateAll();
 	}
 </script>
 
@@ -88,18 +95,15 @@
 	{/each}
 
 	{#if song}
-		<span class="mb-16" />
+		<span class="mb-2" />
 	{/if}
 </main>
 
 {#if song}
-	<footer
-		class="fixed bottom-0 left-0 flex w-full h-32 text-center bg-gray-100"
-		transition:fly={{ y: 200 }}
-	>
+	<footer class="fixed bottom-0 left-0 flex w-full h-16 text-center" transition:fly={{ y: 200 }}>
 		<div class="w-full h-full" transition:fade>
 			<Player
-				{song}
+				bind:song
 				origin="{get(page).url.pathname.split('/').slice(0, -1).join('/')}{get(page).url.search}"
 			/>
 		</div>

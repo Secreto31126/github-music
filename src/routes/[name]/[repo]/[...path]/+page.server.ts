@@ -61,6 +61,7 @@ export const load = (async ({ params, cookies, url, setHeaders }) => {
 		cover: string | null;
 		url: string | null;
 		path: string;
+		update: boolean;
 	} | null;
 
 	// If it's not a folder and has an audio file extension
@@ -83,7 +84,8 @@ export const load = (async ({ params, cookies, url, setHeaders }) => {
 		song = {
 			cover,
 			path,
-			url
+			url,
+			update: true
 		};
 	}
 
