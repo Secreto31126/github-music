@@ -4,7 +4,7 @@
 	export let data: PageData;
 	export let form: ActionData;
 
-	let repo: string = '';
+	let repo = '';
 	$: branch = repo ? data.repos.find((r) => r.name === repo)?.branch || 'main' : 'main';
 </script>
 
