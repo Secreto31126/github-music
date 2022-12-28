@@ -2,6 +2,7 @@
 	import type { PageData } from './$types';
 
 	import { page } from '$app/stores';
+	import Player from '$lib/Player.svelte';
 	import { fade, fly } from 'svelte/transition';
 
 	export let data: PageData;
@@ -13,8 +14,7 @@
 		cover: string | null;
 	} | null = null;
 
-	$: if (data.song && data.song.path !== song?.path) {
-		console.log(data.song.cover);
+	$: if (data.song) {
 		song = {
 			name: data.song.path.split('/').pop() || 'Error',
 			path: data.song.path,
@@ -95,26 +95,8 @@
 		class="fixed bottom-0 left-0 flex w-full h-32 text-center bg-gray-100"
 		transition:fly={{ y: 200 }}
 	>
-		<div class="flex justify-center items-center w-full h-full gap-2" transition:fade>
-			<img
-				src={song.cover || '/favicon.png'}
-				alt="Cover"
-				on:error={missingImg}
-				class="aspect-square h-2/3"
-			/>
-			<div class="flex flex-col gap-2">
-				<p>{song.name}</p>
-				{#key song.url}
-					{#if song.url}
-						<audio controls autoplay>
-							<source src={song.url} type="audio/mpeg" />
-							Your browser does not support the audio element.
-						</audio>
-					{:else}
-						<p>Failed to get audio URL</p>
-					{/if}
-				{/key}
-			</div>
+		<div class="w-full h-full" transition:fade>
+			<Player {song} />
 		</div>
 	</footer>
 {/if}
