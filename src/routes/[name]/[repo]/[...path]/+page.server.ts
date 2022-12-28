@@ -18,7 +18,13 @@ export const load = (async ({ params, cookies, url, setHeaders }) => {
 		throw redirect(302, '/login');
 	}
 
-	const tree_request = await getRepoStructure(token, name, repo, branch);
+	let tree_request;
+	try {
+		tree_request = await getRepoStructure(token, name, repo, branch);
+	} catch (e) {
+		throw error(404, { message: 'Repo not found' });
+	}
+
 	const tree = tree_request.data.tree;
 
 	setHeaders({
