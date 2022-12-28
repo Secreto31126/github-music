@@ -18,19 +18,17 @@ export const load = (async ({ params, cookies, url, setHeaders }) => {
 		throw redirect(302, '/login');
 	}
 
-	let tree_request;
+	setHeaders({
+		age: '0',
+		'cache-control': 'private, max-age=120, s-maxage=120'
+	});
+
+	let tree;
 	try {
-		tree_request = await getRepoStructure(token, name, repo, branch);
+		tree = (await getRepoStructure(token, name, repo, branch)).data.tree;
 	} catch (e) {
 		throw error(404, { message: 'Repo not found' });
 	}
-
-	const tree = tree_request.data.tree;
-
-	setHeaders({
-		age: '0',
-		'cache-control': tree_request.headers['cache-control'] || 'private, max-age=300, s-maxage=300'
-	});
 
 	const root = {} as Node;
 	for (const node of tree) {
