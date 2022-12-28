@@ -57,10 +57,10 @@
 <main class="flex flex-col gap-4 mx-2 mb-16">
 	{#if !list.root}
 		<a
-			href={$page.url.pathname
+			href="{$page.url.pathname
 				.split('/')
 				.slice(0, data.song ? -2 : -1)
-				.join('/')}
+				.join('/')}{$page.url.search || ''}"
 		>
 			Seeing playlist: {list.name}
 		</a>
@@ -72,7 +72,7 @@
 		<a
 			href="{data.song
 				? $page.url.pathname.split('/').slice(0, -1).join('/')
-				: $page.url.pathname}/{file.filename}"
+				: $page.url.pathname}/{file.filename}{$page.url.search || ''}"
 			class="flex items-center space-x-2 h-16 w-fit"
 		>
 			<img
