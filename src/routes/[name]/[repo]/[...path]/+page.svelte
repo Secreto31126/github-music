@@ -6,7 +6,7 @@
 	import { navigating, page } from '$app/stores';
 	import { get } from 'svelte/store';
 	import { fade, fly } from 'svelte/transition';
-	import { invalidate, invalidateAll } from '$app/navigation';
+	import { invalidateAll } from '$app/navigation';
 
 	export let data: PageData;
 
