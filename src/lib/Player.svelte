@@ -8,6 +8,8 @@
 		cover: string | null;
 	};
 
+	export let origin: string;
+
 	function missingImg(event: Event) {
 		const target = event.target as HTMLImageElement;
 		target.src = '/favicon.png';
@@ -19,12 +21,12 @@
 			artwork: [{ src: song.cover || '/favicon.png', type: 'image/png' }]
 		});
 
-		navigator.mediaSession.setActionHandler('play', function () {});
-		navigator.mediaSession.setActionHandler('pause', function () {});
-		navigator.mediaSession.setActionHandler('seekbackward', function () {});
-		navigator.mediaSession.setActionHandler('seekforward', function () {});
-		navigator.mediaSession.setActionHandler('previoustrack', function () {});
-		navigator.mediaSession.setActionHandler('nexttrack', function () {});
+		// navigator.mediaSession.setActionHandler('play', function () {});
+		// navigator.mediaSession.setActionHandler('pause', function () {});
+		// navigator.mediaSession.setActionHandler('seekbackward', function () {});
+		// navigator.mediaSession.setActionHandler('seekforward', function () {});
+		// navigator.mediaSession.setActionHandler('previoustrack', function () {});
+		// navigator.mediaSession.setActionHandler('nexttrack', function () {});
 	}
 </script>
 
@@ -36,7 +38,7 @@
 		class="aspect-square h-2/3"
 	/>
 	<div class="flex flex-col gap-2">
-		<p>{song.name}</p>
+		<a href={origin}>{song.name}</a>
 		{#key song.url}
 			{#if song.url}
 				<audio controls autoplay>

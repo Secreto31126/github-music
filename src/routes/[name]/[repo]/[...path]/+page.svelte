@@ -1,8 +1,10 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 
-	import { page } from '$app/stores';
 	import Player from '$lib/Player.svelte';
+
+	import { page } from '$app/stores';
+	import { get } from 'svelte/store';
 	import { fade, fly } from 'svelte/transition';
 
 	export let data: PageData;
@@ -51,7 +53,7 @@
 </script>
 
 <svelte:head>
-	<title>{song ? song.name : list ? list.name : 'GitHub Music'}</title>
+	<title>{song ? song.name : list?.name !== '/' ? list.name : 'GitHub Music'}</title>
 </svelte:head>
 
 <main class="flex flex-col gap-4 mx-2 mb-16">
@@ -96,7 +98,10 @@
 		transition:fly={{ y: 200 }}
 	>
 		<div class="w-full h-full" transition:fade>
-			<Player {song} />
+			<Player
+				{song}
+				origin="{get(page).url.pathname.split('/').slice(0, -1).join('/')}{get(page).url.search}"
+			/>
 		</div>
 	</footer>
 {/if}
