@@ -7,6 +7,7 @@
 	import { get } from 'svelte/store';
 	import { fade, fly } from 'svelte/transition';
 	import { invalidateAll } from '$app/navigation';
+	import { getName, getParentPath } from '$lib/paths';
 
 	export let data: PageData;
 
@@ -17,15 +18,28 @@
 		cover: string | null;
 	} | null = null;
 
-	$: if (data.song && data.song.update) {
-		song = {
-			name: data.song.path.split('/').pop() || 'Error',
-			path: data.song.path,
-			url: data.song.url,
-			cover: data.song.cover
-		};
+	async function setSong(song_data: PageData['song'] | null) {
+		if (!song_data) return;
 
+		let url = null as string | null;
+		try {
+			const request = await fetch(get(page).url.pathname);
+			url = await request.text();
+		} catch (error) {
+			console.error(error);
+		}
+
+		song = {
+			url,
+			name: song_data.path.split('/').pop() || 'Error',
+			path: song_data.path,
+			cover: song_data.cover
+		};
+	}
+
+	$: if (data.song && data.song.update) {
 		data.song.update = false;
+		setSong(data.song);
 	}
 
 	let list: {
@@ -42,7 +56,7 @@
 	$: if (data.list.path !== list?.path) {
 		list = {
 			root: data.list.root,
-			name: data.list.root ? '/' : data.list.path.split('/').at(-1) || '/',
+			name: data.list.root ? '/' : getName(data.list.path, 1) || '/',
 			path: data.list.path,
 			cover: data.list.cover,
 			files: data.list.files
@@ -65,12 +79,7 @@
 
 <main class="flex flex-col gap-4 mx-2 mb-16">
 	{#if !list.root}
-		<a
-			href="{$page.url.pathname
-				.split('/')
-				.slice(0, data.song ? -2 : -1)
-				.join('/')}{$page.url.search}"
-		>
+		<a href="{getParentPath($page.url.pathname, data.song ? -2 : -1)}{$page.url.search}">
 			Seeing playlist: {list.name}
 		</a>
 	{:else}
@@ -79,9 +88,8 @@
 
 	{#each list.files as file}
 		<a
-			href="{data.song
-				? $page.url.pathname.split('/').slice(0, -1).join('/')
-				: $page.url.pathname}/{file.filename}{$page.url.search}"
+			href="{data.song ? getParentPath($page.url.pathname, 1) : $page.url.pathname}
+				/{file.filename}{$page.url.search}"
 			class="flex items-center space-x-2 h-16 w-fit"
 		>
 			<img
@@ -102,10 +110,7 @@
 {#if song}
 	<footer class="fixed bottom-0 left-0 flex w-full h-16 text-center" transition:fly={{ y: 200 }}>
 		<div class="w-full h-full" transition:fade>
-			<Player
-				bind:song
-				origin="{get(page).url.pathname.split('/').slice(0, -1).join('/')}{get(page).url.search}"
-			/>
+			<Player bind:song origin="{getParentPath(get(page).url.pathname, 1)}{get(page).url.search}" />
 		</div>
 	</footer>
 {/if}
