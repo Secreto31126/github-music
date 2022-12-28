@@ -43,7 +43,7 @@
 		"@octokit/rest": "^19.0.5"
 	},
 	"lint-staged": {
-		"*.{js,ts,svelte}": "eslint --cache --fix",
+		"*.{js,ts,svelte}": "eslint --fix",
 		"*.{js,ts,svelte,css,scss,postcss,md,json}": "prettier --write"
 	}
 }
