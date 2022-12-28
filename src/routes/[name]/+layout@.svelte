@@ -22,4 +22,6 @@
 	</div>
 </header>
 
-<slot />
+<div class="mt-16 w-full h-full">
+	<slot />
+</div>

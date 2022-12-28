@@ -54,7 +54,7 @@
 	<title>{song ? song.name : list ? list.name : 'GitHub Music'}</title>
 </svelte:head>
 
-<main class="flex flex-col gap-4 mx-2 my-16">
+<main class="flex flex-col gap-4 mx-2 mb-16">
 	{#if !list.root}
 		<a
 			href={$page.url.pathname
