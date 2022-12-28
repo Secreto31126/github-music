@@ -2,7 +2,14 @@ import { Octokit } from '@octokit/rest';
 
 export async function getRepoList(auth: string) {
 	const octokit = new Octokit({ auth });
-	return await octokit.repos.listForAuthenticatedUser();
+	return await octokit.repos.listForAuthenticatedUser({
+		per_page: 100
+	});
+}
+
+export async function getRepoListOf(auth: string, name: string) {
+	const octokit = new Octokit({ auth });
+	return await octokit.repos.listForUser({ username: name, per_page: 100 });
 }
 
 export async function getRepoStructure(auth: string, owner: string, repo: string, branch = 'main') {

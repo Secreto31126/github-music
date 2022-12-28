@@ -1,16 +1,19 @@
 import { redirect, fail } from '@sveltejs/kit';
-import { getRepoList } from '$lib/server/github';
+import { getRepoList, getRepoListOf } from '$lib/server/github';
 
 import type { PageServerLoad, Actions } from './$types';
 
-export const load = (async ({ cookies, setHeaders }) => {
+export const load = (async ({ cookies, params, parent, setHeaders }) => {
 	const token = cookies.get('access_token');
 
 	if (!token) {
 		throw redirect(302, '/login');
 	}
 
-	const repos = getRepoList(token);
+	const name = params.name;
+	const { session } = await parent();
+
+	const repos = name === session?.user?.name ? getRepoList(token) : getRepoListOf(token, name);
 
 	setHeaders({
 		age: (await repos).headers.age?.toString() || '0',
@@ -18,7 +21,7 @@ export const load = (async ({ cookies, setHeaders }) => {
 	});
 
 	return {
-		repos: (await repos).data.map((repo) => repo.name)
+		repos: (await repos).data.map((repo) => ({ name: repo.name, branch: repo.default_branch }))
 	};
 }) satisfies PageServerLoad;
 
