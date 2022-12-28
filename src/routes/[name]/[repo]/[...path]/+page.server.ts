@@ -20,7 +20,7 @@ export const load = (async ({ params, cookies, url, setHeaders }) => {
 
 	setHeaders({
 		age: '0',
-		'cache-control': 'private, max-age=120, s-maxage=120'
+		'cache-control': 'private, max-age=300, s-maxage=300'
 	});
 
 	let tree;

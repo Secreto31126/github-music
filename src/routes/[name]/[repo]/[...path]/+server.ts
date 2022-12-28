@@ -2,7 +2,7 @@ import type { RequestHandler } from './$types';
 import { error, redirect } from '@sveltejs/kit';
 import { getRepoFile } from '$lib/server/github';
 
-export const GET = (async ({ cookies, params }) => {
+export const GET = (async ({ cookies, params, setHeaders }) => {
 	const name = params.name;
 	const repo = params.repo;
 	const path = params.path;
@@ -13,20 +13,25 @@ export const GET = (async ({ cookies, params }) => {
 		throw redirect(302, '/login');
 	}
 
-	let file;
+	let request;
 	try {
-		file = await getRepoFile(token, name, repo, path);
+		request = await getRepoFile(token, name, repo, path);
 	} catch (e) {
 		throw error(404, { message: 'File not found' });
 	}
 
-	if (Array.isArray(file.data)) {
+	if (Array.isArray(request.data)) {
 		throw error(400, { message: 'Not a file' });
 	}
 
-	if (!file.data.download_url) {
+	if (!request.data.download_url) {
 		throw error(413, { message: 'No download URL, file is too big' });
 	}
 
-	return new Response(file.data.download_url);
+	setHeaders({
+		age: '0',
+		'cache-control': 'private, max-age=120, s-maxage=120'
+	});
+
+	return new Response(request.data.download_url);
 }) satisfies RequestHandler;
