@@ -5,6 +5,7 @@
 	import { getParentPath } from '$lib/paths';
 	import { loop_type } from '$lib/stores';
 	import { onDestroy, onMount } from 'svelte';
+	import getFileUrl from '$lib/getFileUrl';
 
 	export let index = 0;
 	export let songs: Array<Song> | null;
@@ -13,6 +14,7 @@
 	let retries = 0;
 	let last_requested: string;
 	let url = null as string | null;
+	let cover = null as string | null;
 
 	let name_strcpy: string;
 	$: if (songs) {
@@ -22,6 +24,7 @@
 	let player: HTMLAudioElement;
 	let playing = false;
 
+	//#region Player Comands
 	function play() {
 		player.play();
 	}
@@ -98,6 +101,7 @@
 			$loop_type = 0;
 		}
 	}
+	//#endregion
 
 	$: if (browser && songs?.[index] && url && 'mediaSession' in navigator) {
 		navigator.mediaSession.metadata = new MediaMetadata({
@@ -111,21 +115,6 @@
 		navigator.mediaSession.setActionHandler('seekforward', foward);
 		navigator.mediaSession.setActionHandler('previoustrack', previous);
 		navigator.mediaSession.setActionHandler('nexttrack', next);
-	}
-
-	async function getUrl(filename: string) {
-		try {
-			const request = await fetch(`${getParentPath(origin.pathname, 1)}/${filename}`);
-			if (request.ok) {
-				return await request.text();
-			} else {
-				console.error((await request.json()).message);
-				return null;
-			}
-		} catch (error) {
-			console.error(error);
-			return null;
-		}
 	}
 
 	function missingImg(event: Event) {
@@ -148,7 +137,8 @@
 		if (retries < 3) {
 			retries++;
 			last_requested = songs[index].name;
-			url = await getUrl(songs[index].name);
+			url = await getFileUrl(`${getParentPath(origin.pathname, 1)}/${songs[index].name}`, fetch);
+			cover = await getFileUrl(`${getParentPath(origin.pathname, 1)}/${songs[index].cover}`, fetch);
 		} else {
 			url = null;
 			retries = 0;
@@ -184,7 +174,7 @@
 
 <div class="flex justify-center items-center bg-orange-100 w-full h-full gap-2">
 	<img
-		src={songs?.[index].cover || '/favicon.png'}
+		src={cover || '/favicon.png'}
 		alt="Cover"
 		on:error={missingImg}
 		class="aspect-square h-2/3"

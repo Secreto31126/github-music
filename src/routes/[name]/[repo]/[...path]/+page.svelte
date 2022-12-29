@@ -13,13 +13,15 @@
 	export let data: PageData;
 
 	let index = 0;
+	let origin: URL;
 	$: update = !!data.songs;
-	let songs: Array<Song> | null = null;
+	let songs = null as Array<Song> | null;
 
 	async function setSongs(song_data: PageData['songs']) {
 		if (!song_data) return;
 
 		index = song_data.index;
+		origin = get(page).url;
 
 		// Trigger reactivity at the end
 		const temp = [] as Array<Song>;
@@ -37,7 +39,7 @@
 
 	let list: PageData['list'];
 	$: if (data.list.path !== list?.path) {
-		list = { ...data.list };
+		list = { ...data.list, files: [...data.list.files] };
 	}
 
 	function missingImg(event: Event) {
@@ -52,7 +54,7 @@
 
 <svelte:head>
 	<title>
-		{songs?.[index] ? songs[index].name : list?.name !== '/' ? list.name : 'GitHub Music'}
+		{songs?.[index] ? songs[index].name : list.name !== '/' ? list.name : 'GitHub Music'}
 	</title>
 </svelte:head>
 
@@ -90,7 +92,7 @@
 {#if songs}
 	<footer class="fixed bottom-0 left-0 flex w-full h-16 text-center" transition:fly={{ y: 200 }}>
 		<div class="w-full h-full" transition:fade>
-			<Player bind:songs bind:index origin={get(page).url} />
+			<Player bind:songs bind:index {origin} />
 		</div>
 	</footer>
 {/if}
