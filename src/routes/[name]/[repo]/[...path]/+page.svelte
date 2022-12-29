@@ -51,7 +51,9 @@
 </script>
 
 <svelte:head>
-	<title>{songs ? songs[index].name : list?.name !== '/' ? list.name : 'GitHub Music'}</title>
+	<title>
+		{songs?.[index] ? songs[index].name : list?.name !== '/' ? list.name : 'GitHub Music'}
+	</title>
 </svelte:head>
 
 <main class="flex flex-col gap-4 mx-2 mb-16">
