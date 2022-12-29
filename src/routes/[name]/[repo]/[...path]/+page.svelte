@@ -14,7 +14,7 @@
 
 	let index = 0;
 	$: update = !!data.songs;
-	let songs: Array<Song> | null = null;
+	let songs = null as Array<Song> | null;
 
 	async function setSongs(song_data: PageData['songs']) {
 		if (!song_data) return;
@@ -37,7 +37,7 @@
 
 	let list: PageData['list'];
 	$: if (data.list.path !== list?.path) {
-		list = { ...data.list };
+		list = { ...data.list, files: [...data.list.files] };
 	}
 
 	function missingImg(event: Event) {
@@ -52,7 +52,7 @@
 
 <svelte:head>
 	<title>
-		{songs?.[index] ? songs[index].name : list?.name !== '/' ? list.name : 'GitHub Music'}
+		{songs?.[index] ? songs[index].name : list.name !== '/' ? list.name : 'GitHub Music'}
 	</title>
 </svelte:head>
 
