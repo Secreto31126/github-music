@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
+	import { createEventDispatcher } from 'svelte';
 
 	export let song: {
 		name: string;
@@ -8,20 +9,17 @@
 		cover: string | null;
 	} | null;
 
+	export let origin: string;
+
+	const dispatch = createEventDispatcher();
+
 	let name_strcpy: string;
 	$: if (song) {
 		name_strcpy = song.name;
 	}
 
-	export let origin: string;
-
 	let player: HTMLAudioElement;
 	let playing = false;
-
-	function missingImg(event: Event) {
-		const target = event.target as HTMLImageElement;
-		target.src = '/favicon.png';
-	}
 
 	function play() {
 		player.play();
@@ -58,7 +56,7 @@
 		player.loop = !player.loop;
 	}
 
-	$: if (browser && song?.cover && 'mediaSession' in navigator) {
+	$: if (browser && song?.url && 'mediaSession' in navigator) {
 		navigator.mediaSession.metadata = new MediaMetadata({
 			title: song.name,
 			artwork: [{ src: song.cover || '/favicon.png', type: 'image/png' }]
@@ -71,6 +69,18 @@
 
 		// navigator.mediaSession.setActionHandler('previoustrack', function () {});
 		// navigator.mediaSession.setActionHandler('nexttrack', function () {});
+	}
+
+	function missingImg(event: Event) {
+		const target = event.target as HTMLImageElement;
+		target.src = '/favicon.png';
+	}
+
+	function missingAudio(event: Event) {
+		dispatch('error', {
+			message: 'Audio not found',
+			code: 404
+		});
 	}
 </script>
 
@@ -91,7 +101,7 @@
 					on:pause={() => (playing = false)}
 					autoplay
 				>
-					<source src={song.url} type="audio/mpeg" />
+					<source src={song.url} type="audio/mpeg" on:error={missingAudio} />
 					Your browser does not support the audio element.
 				</audio>
 

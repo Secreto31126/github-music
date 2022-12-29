@@ -11,6 +11,7 @@
 
 	export let data: PageData;
 
+	let retries = 0;
 	let song: {
 		name: string;
 		path: string;
@@ -18,19 +19,21 @@
 		cover: string | null;
 	} | null = null;
 
-	async function setSong(song_data: PageData['song'] | null) {
-		if (!song_data) return;
-
-		let url = null as string | null;
+	async function getUrl() {
 		try {
 			const request = await fetch(get(page).url.pathname);
-			url = await request.text();
+			return await request.text();
 		} catch (error) {
 			console.error(error);
+			return null;
 		}
+	}
+
+	async function setSong(song_data: PageData['song']) {
+		if (!song_data) return;
 
 		song = {
-			url,
+			url: await getUrl(),
 			name: song_data.path.split('/').pop() || 'Error',
 			path: song_data.path,
 			cover: song_data.cover
@@ -40,6 +43,7 @@
 	$: if (data.song && data.song.update) {
 		data.song.update = false;
 		setSong(data.song);
+		retries = 0;
 	}
 
 	let list: {
@@ -66,6 +70,21 @@
 	function missingImg(event: Event) {
 		const target = event.target as HTMLImageElement;
 		target.src = '/favicon.png';
+	}
+
+	async function missingAudio() {
+		if (!song) {
+			retries = 0;
+			return;
+		}
+
+		if (retries < 3) {
+			retries++;
+			song.url = await getUrl();
+		} else {
+			song.url = null;
+			retries = 0;
+		}
 	}
 
 	$: if ($navigating && $navigating.from?.url.href === $navigating.to?.url.href) {
@@ -110,7 +129,11 @@
 {#if song}
 	<footer class="fixed bottom-0 left-0 flex w-full h-16 text-center" transition:fly={{ y: 200 }}>
 		<div class="w-full h-full" transition:fade>
-			<Player bind:song origin="{getParentPath(get(page).url.pathname, 1)}{get(page).url.search}" />
+			<Player
+				bind:song
+				on:error={missingAudio}
+				origin="{getParentPath(get(page).url.pathname, 1)}{get(page).url.search}"
+			/>
 		</div>
 	</footer>
 {/if}
