@@ -7,7 +7,7 @@ export const handle = SvelteKitAuth({
 		/**
 		 * @see https://github.com/nextauthjs/next-auth/issues/6174
 		 */
-		/* eslint-disable */
+		/* eslint-disable @typescript-eslint/ban-ts-comment */
 		// @ts-ignore
 		GitHub({
 			clientId: GITHUB_ID,

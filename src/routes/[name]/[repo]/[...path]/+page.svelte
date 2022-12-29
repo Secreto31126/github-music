@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
+	import type { Song } from '$lib/types';
 
 	import Player from '$lib/Player.svelte';
 
@@ -7,46 +8,36 @@
 	import { get } from 'svelte/store';
 	import { fade, fly } from 'svelte/transition';
 	import { invalidateAll } from '$app/navigation';
+	import { getParentPath } from '$lib/paths';
 
 	export let data: PageData;
 
-	let song: {
-		name: string;
-		path: string;
-		url: string | null;
-		cover: string | null;
-	} | null = null;
+	let index = 0;
+	$: update = !!data.songs;
+	let songs: Array<Song> | null = null;
 
-	$: if (data.song && data.song.update) {
-		song = {
-			name: data.song.path.split('/').pop() || 'Error',
-			path: data.song.path,
-			url: data.song.url,
-			cover: data.song.cover
-		};
+	async function setSongs(song_data: PageData['songs']) {
+		if (!song_data) return;
 
-		data.song.update = false;
+		index = song_data.index;
+
+		// Trigger reactivity at the end
+		const temp = [] as Array<Song>;
+		for (const song of song_data.list) {
+			temp.push({ ...song });
+		}
+
+		songs = temp;
 	}
 
-	let list: {
-		root: boolean;
-		name: string;
-		path: string;
-		cover: string | null;
-		files: Array<{
-			filename: string;
-			cover: string | null;
-		}>;
-	};
+	$: if (data.songs && update) {
+		update = false;
+		setSongs(data.songs);
+	}
 
+	let list: PageData['list'];
 	$: if (data.list.path !== list?.path) {
-		list = {
-			root: data.list.root,
-			name: data.list.root ? '/' : data.list.path.split('/').at(-1) || '/',
-			path: data.list.path,
-			cover: data.list.cover,
-			files: data.list.files
-		};
+		list = { ...data.list };
 	}
 
 	function missingImg(event: Event) {
@@ -60,17 +51,14 @@
 </script>
 
 <svelte:head>
-	<title>{song ? song.name : list?.name !== '/' ? list.name : 'GitHub Music'}</title>
+	<title>
+		{songs?.[index] ? songs[index].name : list?.name !== '/' ? list.name : 'GitHub Music'}
+	</title>
 </svelte:head>
 
 <main class="flex flex-col gap-4 mx-2 mb-16">
 	{#if !list.root}
-		<a
-			href="{$page.url.pathname
-				.split('/')
-				.slice(0, data.song ? -2 : -1)
-				.join('/')}{$page.url.search}"
-		>
+		<a href="{getParentPath($page.url.pathname, data.songs ? 2 : 1)}{$page.url.search}">
 			Seeing playlist: {list.name}
 		</a>
 	{:else}
@@ -79,9 +67,9 @@
 
 	{#each list.files as file}
 		<a
-			href="{data.song
-				? $page.url.pathname.split('/').slice(0, -1).join('/')
-				: $page.url.pathname}/{file.filename}{$page.url.search}"
+			href="{data.songs ? getParentPath($page.url.pathname, 1) : $page.url.pathname}
+				/{file.filename}{$page.url.search}"
+			data-sveltekit-noscroll={file.type === 'folder' ? 'off' : ''}
 			class="flex items-center space-x-2 h-16 w-fit"
 		>
 			<img
@@ -94,18 +82,15 @@
 		</a>
 	{/each}
 
-	{#if song}
+	{#if songs}
 		<span class="mb-2" />
 	{/if}
 </main>
 
-{#if song}
+{#if songs}
 	<footer class="fixed bottom-0 left-0 flex w-full h-16 text-center" transition:fly={{ y: 200 }}>
 		<div class="w-full h-full" transition:fade>
-			<Player
-				bind:song
-				origin="{get(page).url.pathname.split('/').slice(0, -1).join('/')}{get(page).url.search}"
-			/>
+			<Player bind:songs bind:index origin={get(page).url} />
 		</div>
 	</footer>
 {/if}
