@@ -79,7 +79,7 @@
 
 <main class="flex flex-col gap-4 mx-2 mb-16">
 	{#if !list.root}
-		<a href="{getParentPath($page.url.pathname, data.song ? -2 : -1)}{$page.url.search}">
+		<a href="{getParentPath($page.url.pathname, data.song ? 2 : 1)}{$page.url.search}">
 			Seeing playlist: {list.name}
 		</a>
 	{:else}
