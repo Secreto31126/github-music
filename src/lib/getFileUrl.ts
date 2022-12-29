@@ -1,4 +1,4 @@
-export default async function getFileUrl(path: string) {
+export default async function getFileUrl(path: string, fetch: typeof window.fetch) {
 	try {
 		const request = await fetch(path);
 		if (request.ok) {

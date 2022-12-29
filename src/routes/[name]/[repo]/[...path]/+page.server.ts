@@ -1,6 +1,7 @@
 import { error, redirect } from '@sveltejs/kit';
 import { getRepoStructure } from '$lib/server/github';
 import { getName, getParentPath } from '$lib/paths';
+import getFileUrl from '$lib/getFileUrl';
 
 import type { Song } from '$lib/types';
 import type { PageServerLoad } from './$types';
@@ -9,7 +10,7 @@ type Node = {
 	[path: string]: Node;
 };
 
-export const load = (async ({ params, cookies, url, setHeaders }) => {
+export const load = (async ({ params, cookies, url, setHeaders, fetch }) => {
 	const name = params.name;
 	const repo = params.repo;
 	const path = params.path;
@@ -75,6 +76,7 @@ export const load = (async ({ params, cookies, url, setHeaders }) => {
 		name: parent === null ? '/' : getName(path, is_path_to_audio ? 2 : 1) || '/',
 		path: is_path_to_audio ? getParentPath(path, 1) : path,
 		cover: null as string | null,
+		cover_name: null as string | null,
 		files: [] as Array<{
 			filename: string;
 			cover: string | null;
@@ -88,7 +90,8 @@ export const load = (async ({ params, cookies, url, setHeaders }) => {
 	for (const filename in listed_dir) {
 		// If folder
 		if (Object.keys(listed_dir[filename]).length) {
-			const cover = findCover(listed_dir[filename], `${list.path}/${filename}`);
+			const cover_path = findCover(listed_dir[filename], `${list.path}/${filename}`);
+			const cover = cover_path ? await getFileUrl(`/${name}/${repo}/${cover_path}`, fetch) : null;
 
 			list.files.push({
 				filename,
@@ -110,17 +113,27 @@ export const load = (async ({ params, cookies, url, setHeaders }) => {
 				songs.list.push({
 					name: filename,
 					path: `${list.path}/${filename}`,
-					cover: list.cover
+					cover: list.cover_name
 				});
 			}
 		} else if (isImage(filename) && !list.cover) {
-			list.cover = `${list.path}/${filename}`;
+			list.cover_name = filename;
+			list.cover = await getFileUrl(`/${name}/${repo}/${list.path}/${filename}`, fetch);
 		}
 	}
 
 	// Fill missing covers
-	for (const file of list.files) if (!file.cover) file.cover = list.cover;
-	if (songs) for (const song of songs.list) if (!song.cover) song.cover = list.cover;
+	for (const file of list.files) {
+		if (!file.cover) {
+			file.cover = list.cover;
+		}
+	}
+
+	if (songs && list.cover_name) {
+		for (const song of songs.list) {
+			song.cover = list.cover_name;
+		}
+	}
 
 	return {
 		list,
