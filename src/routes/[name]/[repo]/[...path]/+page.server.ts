@@ -120,7 +120,7 @@ export const load = (async ({ params, cookies, url, setHeaders }) => {
 
 	// Fill missing covers
 	for (const file of list.files) if (!file.cover) file.cover = list.cover;
-	for (const song of songs?.list || []) if (!song.cover) song.cover = list.cover;
+	if (songs) for (const song of songs.list) if (!song.cover) song.cover = list.cover;
 
 	return {
 		list,
