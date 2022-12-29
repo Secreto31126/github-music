@@ -5,6 +5,7 @@
 	import { getParentPath } from '$lib/paths';
 	import { loop_type } from '$lib/stores';
 	import { onDestroy, onMount } from 'svelte';
+	import getFileUrl from '$lib/getFileUrl';
 
 	export let index = 0;
 	export let songs: Array<Song> | null;
@@ -113,21 +114,6 @@
 		navigator.mediaSession.setActionHandler('nexttrack', next);
 	}
 
-	async function getUrl(filename: string) {
-		try {
-			const request = await fetch(`${getParentPath(origin.pathname, 1)}/${filename}`);
-			if (request.ok) {
-				return await request.text();
-			} else {
-				console.error((await request.json()).message);
-				return null;
-			}
-		} catch (error) {
-			console.error(error);
-			return null;
-		}
-	}
-
 	function missingImg(event: Event) {
 		const target = event.target as HTMLImageElement;
 		target.src = '/favicon.png';
@@ -148,7 +134,7 @@
 		if (retries < 3) {
 			retries++;
 			last_requested = songs[index].name;
-			url = await getUrl(songs[index].name);
+			url = await getFileUrl(`${getParentPath(origin.pathname, 1)}/${songs[index].name}`);
 		} else {
 			url = null;
 			retries = 0;
