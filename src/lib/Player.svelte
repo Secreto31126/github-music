@@ -165,7 +165,7 @@
 		}
 	});
 
-	$: index, setupAudio();
+	$: index, origin, setupAudio();
 
 	$: if (browser && player) {
 		player.loop = loop_song;
