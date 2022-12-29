@@ -1,7 +1,9 @@
 import { error, redirect } from '@sveltejs/kit';
 import { getRepoStructure } from '$lib/server/github';
+import { getName, getParentPath } from '$lib/paths';
+
+import type { Song } from '$lib/types';
 import type { PageServerLoad } from './$types';
-import { getParentPath } from '$lib/paths';
 
 type Node = {
 	[path: string]: Node;
@@ -58,26 +60,20 @@ export const load = (async ({ params, cookies, url, setHeaders }) => {
 		throw error(404, { message: 'Path not found' });
 	}
 
-	let song = null as {
-		path: string;
-		cover: string | null;
-		update: boolean;
-	} | null;
+	const is_path_to_audio = !Object.keys(dir).length && isAudio(path);
+	const requested_song = is_path_to_audio ? getName(path, 1) : null;
 
-	// If it's not a folder and has an audio file extension
-	if (!Object.keys(dir).length && isAudio(path)) {
-		const cover = findCover(parent || ({} as Node), path.split('/').slice(0, -1).join('/'));
-
-		song = {
-			path,
-			cover,
-			update: true
-		};
-	}
+	const songs = is_path_to_audio
+		? {
+				list: [] as Song[],
+				index: 0
+		  }
+		: null;
 
 	const list = {
 		root: parent === null,
-		path: song ? getParentPath(path, 1) : path,
+		name: parent === null ? '/' : getName(path, is_path_to_audio ? 2 : 1) || '/',
+		path: is_path_to_audio ? getParentPath(path, 1) : path,
 		cover: null as string | null,
 		files: [] as Array<{
 			filename: string;
@@ -86,8 +82,8 @@ export const load = (async ({ params, cookies, url, setHeaders }) => {
 		}>
 	};
 
-	// If the path is a song, use the parent folder
-	const listed_dir = song ? parent || root : dir;
+	// If the path is to a song, use the parent folder
+	const listed_dir = is_path_to_audio ? parent || root : dir;
 
 	for (const filename in listed_dir) {
 		// If folder
@@ -105,6 +101,18 @@ export const load = (async ({ params, cookies, url, setHeaders }) => {
 				cover: list.cover,
 				type: 'song'
 			});
+
+			if (songs) {
+				if (filename === requested_song) {
+					songs.index = songs.list.length;
+				}
+
+				songs.list.push({
+					name: filename,
+					path: `${list.path}/${filename}`,
+					cover: list.cover
+				});
+			}
 		} else if (isImage(filename) && !list.cover) {
 			list.cover = `${list.path}/${filename}`;
 		}
@@ -112,10 +120,11 @@ export const load = (async ({ params, cookies, url, setHeaders }) => {
 
 	// Fill missing covers
 	for (const file of list.files) if (!file.cover) file.cover = list.cover;
+	for (const song of songs?.list || []) if (!song.cover) song.cover = list.cover;
 
 	return {
 		list,
-		song
+		songs
 	};
 }) satisfies PageServerLoad;
 
@@ -130,9 +139,15 @@ function findCover(dir: Node, path: string): string | null {
 }
 
 function isImage(filename: string) {
-	return filename.endsWith('.jpg') || filename.endsWith('.png');
+	return (
+		filename.endsWith('.jpg') ||
+		filename.endsWith('.jpeg') ||
+		filename.endsWith('.png') ||
+		filename.endsWith('.gif') ||
+		filename.endsWith('.webp')
+	);
 }
 
 function isAudio(filename: string) {
-	return filename.endsWith('.mp3');
+	return filename.endsWith('.mp3') || filename.endsWith('.ogg') || filename.endsWith('.wav');
 }
