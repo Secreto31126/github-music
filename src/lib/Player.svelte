@@ -138,7 +138,9 @@
 			retries++;
 			last_requested = songs[index].name;
 			url = await getFileUrl(`${getParentPath(origin.pathname, 1)}/${songs[index].name}`, fetch);
-			cover = await getFileUrl(`${getParentPath(origin.pathname, 1)}/${songs[index].cover}`, fetch);
+			cover = songs[index].cover
+				? await getFileUrl(`${getParentPath(origin.pathname, 1)}/${songs[index].cover}`, fetch)
+				: null;
 		} else {
 			url = null;
 			retries = 0;
@@ -165,7 +167,7 @@
 		}
 	});
 
-	$: index, setupAudio();
+	$: index, origin, setupAudio();
 
 	$: if (browser && player) {
 		player.loop = loop_song;
