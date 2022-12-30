@@ -182,7 +182,12 @@
 		class="aspect-square h-2/3"
 	/>
 	<div class="flex flex-col w-1/4">
-		<a href="{getParentPath(origin.pathname, 1)}{origin.search}">{name_strcpy}</a>
+		<a
+			href="{getParentPath(origin.pathname, 1)}{origin.search}"
+			class="whitespace-nowrap overflow-hidden text-ellipsis"
+		>
+			{name_strcpy}
+		</a>
 		{#key url}
 			{#if url}
 				<audio
