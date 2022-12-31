@@ -58,13 +58,16 @@
 	</title>
 </svelte:head>
 
-<main class="flex flex-col gap-4 mx-2 mb-16">
+<main class="flex flex-col gap-4 px-2 pb-16">
 	{#if !list.root}
-		<a href="{getParentPath($page.url.pathname, data.songs ? 2 : 1)}{$page.url.search}">
+		<a
+			href="{getParentPath($page.url.pathname, data.songs ? 2 : 1)}{$page.url.search}"
+			class="text-contrast"
+		>
 			Seeing playlist: {list.name}
 		</a>
 	{:else}
-		<p>Seeing playlist: /</p>
+		<p class="text-contrast">Seeing playlist: /</p>
 	{/if}
 
 	{#each list.files as file}
@@ -80,17 +83,17 @@
 				on:error={missingImg}
 				class="aspect-square h-full"
 			/>
-			<p>{file.filename}</p>
+			<p class="text-contrast">{file.filename}</p>
 		</a>
 	{/each}
 
 	{#if songs}
-		<span class="mb-2" />
+		<span class="h-2" />
 	{/if}
 </main>
 
 {#if songs}
-	<footer class="fixed bottom-0 left-0 flex w-full h-16 text-center" transition:fly={{ y: 200 }}>
+	<footer class="fixed bottom-0 left-0 flex w-full h-20 text-center" transition:fly={{ y: 200 }}>
 		<div class="w-full h-full" transition:fade>
 			<Player bind:songs bind:index {origin} />
 		</div>
