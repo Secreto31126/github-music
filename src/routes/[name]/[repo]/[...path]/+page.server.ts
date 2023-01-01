@@ -23,8 +23,8 @@ export const load = (async ({ params, cookies, url, setHeaders, fetch }) => {
 	}
 
 	setHeaders({
-		age: '0',
-		'cache-control': 'private, max-age=300, s-maxage=300'
+		age: ((new Date().getMinutes() % 2) * 60 + new Date().getSeconds()).toString(),
+		'cache-control': 'private, max-age=120, s-maxage=120'
 	});
 
 	let tree;

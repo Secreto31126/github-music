@@ -29,7 +29,7 @@ export const GET = (async ({ cookies, params, setHeaders }) => {
 	}
 
 	setHeaders({
-		age: '0',
+		age: ((new Date().getMinutes() % 2) * 60 + new Date().getSeconds()).toString(),
 		'cache-control': 'private, max-age=120, s-maxage=120'
 	});
 
