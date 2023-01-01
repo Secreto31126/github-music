@@ -8,7 +8,7 @@
 	import { get } from 'svelte/store';
 	import { fade, fly } from 'svelte/transition';
 	import { invalidateAll } from '$app/navigation';
-	import { getParentPath } from '$lib/paths';
+	import { getParentPath, removeExtension } from '$lib/paths';
 
 	export let data: PageData;
 
@@ -83,7 +83,9 @@
 				on:error={missingImg}
 				class="aspect-square h-full"
 			/>
-			<p class="text-contrast">{file.filename}</p>
+			<p class="text-contrast">
+				{file.type === 'folder' ? file.filename : removeExtension(file.filename)}
+			</p>
 		</a>
 	{/each}
 

@@ -2,7 +2,7 @@
 	import type { Song } from './types';
 
 	import { browser } from '$app/environment';
-	import { getParentPath } from '$lib/paths';
+	import { getParentPath, removeExtension } from '$lib/paths';
 	import { loop_type } from '$lib/stores';
 	import { onDestroy, onMount } from 'svelte';
 	import getFileUrl from '$lib/getFileUrl';
@@ -20,7 +20,7 @@
 
 	let name_strcpy: string;
 	$: if (songs) {
-		name_strcpy = songs[index].name;
+		name_strcpy = removeExtension(songs[index].name);
 	}
 
 	let player: HTMLAudioElement;
@@ -105,18 +105,21 @@
 	}
 	//#endregion
 
-	$: if (browser && songs?.[index] && url && 'mediaSession' in navigator) {
-		navigator.mediaSession.metadata = new MediaMetadata({
-			title: songs[index].name,
-			artwork: [{ src: songs[index].cover || '/favicon.png', type: 'image/png' }]
-		});
+	$: {
+		paused;
+		if (browser && songs?.[index] && url && 'mediaSession' in navigator) {
+			navigator.mediaSession.metadata = new MediaMetadata({
+				title: songs[index].name,
+				artwork: [{ src: songs[index].cover || '/favicon.png', type: 'image/png' }]
+			});
 
-		navigator.mediaSession.setActionHandler('play', play);
-		navigator.mediaSession.setActionHandler('pause', pause);
-		navigator.mediaSession.setActionHandler('seekbackward', backward);
-		navigator.mediaSession.setActionHandler('seekforward', foward);
-		navigator.mediaSession.setActionHandler('previoustrack', previous);
-		navigator.mediaSession.setActionHandler('nexttrack', next);
+			navigator.mediaSession.setActionHandler('play', play);
+			navigator.mediaSession.setActionHandler('pause', pause);
+			navigator.mediaSession.setActionHandler('seekbackward', backward);
+			navigator.mediaSession.setActionHandler('seekforward', foward);
+			navigator.mediaSession.setActionHandler('previoustrack', previous);
+			navigator.mediaSession.setActionHandler('nexttrack', next);
+		}
 	}
 
 	function missingImg(event: Event) {

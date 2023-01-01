@@ -22,6 +22,23 @@
 	</div>
 </header>
 
+<div class="fixed w-full h-14 z-10" id="blur" />
+
 <div class="pt-16 w-full min-h-screen overflow-hidden bg-gradient-to-t from-primary to-gradient">
 	<slot />
 </div>
+
+<style>
+	#blur {
+		mask: linear-gradient(
+			rgba(0, 0, 0, 1),
+			rgba(0, 0, 0, 0.8),
+			rgba(0, 0, 0, 0.6),
+			rgba(0, 0, 0, 0.4),
+			rgba(0, 0, 0, 0.2),
+			rgba(0, 0, 0, 0)
+		);
+
+		backdrop-filter: blur(calc(3.5rem / 6));
+	}
+</style>
