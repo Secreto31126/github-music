@@ -15,6 +15,8 @@
 	let last_requested: string;
 	let url = null as string | null;
 	let cover = null as string | null;
+	let progress = 0;
+	let duration = 0;
 
 	let name_strcpy: string;
 	$: if (songs) {
@@ -22,7 +24,7 @@
 	}
 
 	let player: HTMLAudioElement;
-	let playing = false;
+	let paused = true;
 
 	//#region Player Comands
 	function play() {
@@ -130,14 +132,16 @@
 			return;
 		}
 
-		if (last_requested !== songs[index].name) {
+		if (last_requested !== songs[index].path) {
 			retries = 0;
 		}
 
 		if (retries < 3) {
 			retries++;
-			last_requested = songs[index].name;
+			last_requested = songs[index].path;
+
 			url = await getFileUrl(`${getParentPath(origin.pathname, 1)}/${songs[index].name}`, fetch);
+
 			cover = songs[index].cover
 				? await getFileUrl(`${getParentPath(origin.pathname, 1)}/${songs[index].cover}`, fetch)
 				: null;
@@ -155,8 +159,6 @@
 		if ($loop_type == 2) {
 			loop_song = true;
 		}
-
-		setupAudio();
 	});
 
 	// Copilot insisted on this
@@ -192,18 +194,17 @@
 			{#if url}
 				<audio
 					bind:this={player}
-					on:play={() => (playing = true)}
-					on:pause={() => (playing = false)}
 					on:ended={next}
+					on:error={setupAudio}
+					on:abort={setupAudio}
+					on:canplay={() => (retries = 0)}
+					bind:currentTime={progress}
+					bind:duration
+					bind:paused
 					autoplay
 					preload="auto"
 				>
-					<source
-						src={url}
-						on:error={setupAudio}
-						on:abort={setupAudio}
-						on:canplay={() => (retries = 0)}
-					/>
+					<source src={url} on:error={setupAudio} on:abort={setupAudio} />
 					Your browser does not support the audio element.
 				</audio>
 
@@ -220,12 +221,12 @@
 						</svg>
 					</button>
 
-					<button on:click={toggle} title={playing ? 'Pause' : 'Play'}>
+					<button on:click={toggle} title={paused ? 'Play' : 'Pause'}>
 						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" class="fill-contrast">
-							{#if playing}
-								<path d="M20 7h5v22h-5zm-9 0h5v22h-5z" />
-							{:else}
+							{#if paused}
 								<path d="M8 7l22 11L8 29z" />
+							{:else}
+								<path d="M20 7h5v22h-5zm-9 0h5v22h-5z" />
 							{/if}
 						</svg>
 					</button>
@@ -263,9 +264,9 @@
 					</button>
 				</div>
 			{:else if retries < 3}
-				<p>Loading...</p>
+				<p class="text-contrast">Loading...</p>
 			{:else}
-				<p>Failed to get URL</p>
+				<p class="text-contrast">Failed to get URL</p>
 			{/if}
 		{/key}
 	</div>
