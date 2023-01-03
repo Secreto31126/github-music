@@ -11,6 +11,10 @@
 	let error = $page.url.searchParams.get('error') || form?.message;
 </script>
 
+<svelte:head>
+	<title>GitHub Music</title>
+</svelte:head>
+
 <main class="mx-2 mt-16 text-center">
 	<form class="text-center flex flex-col md:block" method="post" action="?/repo">
 		<div class="inline-block relative mb-2">

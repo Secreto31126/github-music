@@ -4,14 +4,15 @@ import { getRepoList, getRepoListOf } from '$lib/server/github';
 import type { PageServerLoad, Actions } from './$types';
 
 export const load = (async ({ cookies, params, parent, setHeaders }) => {
+	const { session } = await parent();
+
 	const token = cookies.get('access_token');
 
 	if (!token) {
-		throw redirect(302, '/login');
+		throw redirect(302, '/login?error=Timed%20out');
 	}
 
 	const name = params.name;
-	const { session } = await parent();
 
 	const repos = name === session?.user?.name ? getRepoList(token) : getRepoListOf(token, name);
 

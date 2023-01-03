@@ -54,7 +54,11 @@
 
 <svelte:head>
 	<title>
-		{songs?.[index] ? songs[index].name : list.name !== '/' ? list.name : 'GitHub Music'}
+		{songs?.[index]
+			? removeExtension(songs[index].name)
+			: list.name !== '/'
+			? list.name
+			: 'GitHub Music'}
 	</title>
 </svelte:head>
 

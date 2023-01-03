@@ -10,7 +10,7 @@ export const GET = (async ({ cookies, params, setHeaders }) => {
 	const token = cookies.get('access_token');
 
 	if (!token) {
-		throw redirect(302, '/login');
+		throw redirect(302, '/login?error=Timed%20out');
 	}
 
 	let request;
@@ -29,7 +29,7 @@ export const GET = (async ({ cookies, params, setHeaders }) => {
 	}
 
 	setHeaders({
-		age: '0',
+		age: ((new Date().getMinutes() % 2) * 60 + new Date().getSeconds()).toString(),
 		'cache-control': 'private, max-age=120, s-maxage=120'
 	});
 

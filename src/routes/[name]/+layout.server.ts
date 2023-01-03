@@ -5,7 +5,7 @@ export const load = (async ({ parent, cookies }) => {
 	const { session } = await parent();
 
 	if (!session?.user?.name || !cookies.get('access_token')) {
-		throw redirect(302, '/login');
+		throw redirect(302, '/login?error=Timed%20out');
 	}
 
 	return {};

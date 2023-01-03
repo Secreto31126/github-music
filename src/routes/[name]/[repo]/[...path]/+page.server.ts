@@ -19,12 +19,12 @@ export const load = (async ({ params, cookies, url, setHeaders, fetch }) => {
 	const token = cookies.get('access_token');
 
 	if (!token) {
-		throw redirect(302, '/login');
+		throw redirect(302, '/login?error=Timed%20out');
 	}
 
 	setHeaders({
-		age: '0',
-		'cache-control': 'private, max-age=300, s-maxage=300'
+		age: ((new Date().getMinutes() % 2) * 60 + new Date().getSeconds()).toString(),
+		'cache-control': 'private, max-age=120, s-maxage=120'
 	});
 
 	let tree;
@@ -87,15 +87,21 @@ export const load = (async ({ params, cookies, url, setHeaders, fetch }) => {
 	// If the path is to a song, use the parent folder
 	const listed_dir = is_path_to_audio ? parent || root : dir;
 
+	// Here are stored the images' promises to later fill list.files[].cover
+	const images = [] as Promise<string | null>[];
+
 	for (const filename in listed_dir) {
 		// If folder
 		if (Object.keys(listed_dir[filename]).length) {
 			const cover_path = findCover(listed_dir[filename], `${list.path}/${filename}`);
-			const cover = cover_path ? await getFileUrl(`/${name}/${repo}/${cover_path}`, fetch) : null;
+
+			if (cover_path) {
+				images.push(getFileUrl(`/${name}/${repo}/${cover_path}`, fetch));
+			}
 
 			list.files.push({
 				filename,
-				cover,
+				cover: null,
 				type: 'folder'
 			});
 		} else if (isAudio(filename)) {
@@ -120,6 +126,11 @@ export const load = (async ({ params, cookies, url, setHeaders, fetch }) => {
 			list.cover_name = filename;
 			list.cover = await getFileUrl(`/${name}/${repo}/${list.path}/${filename}`, fetch);
 		}
+	}
+
+	let i = 0;
+	for (const cover of await Promise.all(images)) {
+		list.files[i++].cover = cover;
 	}
 
 	// Fill missing covers
