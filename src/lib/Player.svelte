@@ -135,8 +135,15 @@
 			return;
 		}
 
+		if (player) {
+			player.pause();
+			url = null;
+		}
+
+		let copy_progress = progress ?? 0;
 		if (last_requested !== songs[index].path) {
 			retries = 0;
+			copy_progress = 0;
 		}
 
 		if (retries < 3) {
@@ -148,6 +155,8 @@
 			cover = songs[index].cover
 				? await getFileUrl(`${getParentPath(origin.pathname, 1)}/${songs[index].cover}`, fetch)
 				: null;
+
+			progress = copy_progress;
 		} else {
 			url = null;
 			retries = 0;
