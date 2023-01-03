@@ -3,6 +3,10 @@
 	import { page } from '$app/stores';
 </script>
 
+<svelte:head>
+	<title>GitHub Music ({$page.data.session?.user?.name || 'User'})</title>
+</svelte:head>
+
 <div>
 	{#if $page.data.session?.user?.image}
 		<span style="background-image: url('{$page.data.session.user.image}')" class="avatar" />
