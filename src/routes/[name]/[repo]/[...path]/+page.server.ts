@@ -94,7 +94,10 @@ export const load = (async ({ params, cookies, url, setHeaders, fetch }) => {
 		// If folder
 		if (Object.keys(listed_dir[filename]).length) {
 			const cover_path = findCover(listed_dir[filename], `${list.path}/${filename}`);
-			images.push(getFileUrl(`/${name}/${repo}/${cover_path}`, fetch));
+
+			if (cover_path) {
+				images.push(getFileUrl(`/${name}/${repo}/${cover_path}`, fetch));
+			}
 
 			list.files.push({
 				filename,

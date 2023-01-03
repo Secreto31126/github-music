@@ -4,6 +4,7 @@ export default async function getFileUrl(path: string, fetch: typeof window.fetc
 		if (request.ok) {
 			return await request.text();
 		} else {
+			console.error((await request.json()).message);
 			return null;
 		}
 	} catch (error) {
