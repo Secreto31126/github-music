@@ -88,16 +88,13 @@ export const load = (async ({ params, cookies, url, setHeaders, fetch }) => {
 	const listed_dir = is_path_to_audio ? parent || root : dir;
 
 	// Here are stored the images' promises to later fill list.files[].cover
-	const images = [] as Promise<string | null>[];
+	const images = [] as (Promise<string | null> | null)[];
 
 	for (const filename in listed_dir) {
 		// If folder
 		if (Object.keys(listed_dir[filename]).length) {
 			const cover_path = findCover(listed_dir[filename], `${list.path}/${filename}`);
-
-			if (cover_path) {
-				images.push(getFileUrl(`/${name}/${repo}/${cover_path}`, fetch));
-			}
+			images.push(cover_path ? getFileUrl(`/${name}/${repo}/${cover_path}`, fetch) : null);
 
 			list.files.push({
 				filename,
