@@ -110,7 +110,7 @@
 		if (browser && songs?.[index] && url && 'mediaSession' in navigator) {
 			navigator.mediaSession.metadata = new MediaMetadata({
 				title: songs[index].name,
-				artwork: [{ src: songs[index].cover || '/favicon.png', type: 'image/png' }]
+				artwork: [{ src: cover || '/favicon.png', type: 'image/png' }]
 			});
 
 			navigator.mediaSession.setActionHandler('play', play);
