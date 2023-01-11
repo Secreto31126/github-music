@@ -138,6 +138,43 @@
 		}
 	}
 
+	function keyboard(event: KeyboardEvent) {
+		if (event.code === 'Space') {
+			event.preventDefault();
+
+			if (event.ctrlKey) {
+				stop();
+			} else {
+				toggle();
+			}
+		}
+
+		if (event.code === 'ArrowLeft') {
+			event.preventDefault();
+
+			if (event.ctrlKey) {
+				previous();
+			} else {
+				backward();
+			}
+		}
+
+		if (event.code === 'ArrowRight') {
+			event.preventDefault();
+
+			if (event.ctrlKey) {
+				next();
+			} else {
+				foward();
+			}
+		}
+
+		if (event.code === 'KeyL') {
+			event.preventDefault();
+			loop();
+		}
+	}
+
 	async function setupAudio() {
 		if (!browser) return;
 
@@ -198,6 +235,8 @@
 		player.loop = loop_song;
 	}
 </script>
+
+<svelte:window on:keydown={keyboard} />
 
 <div class="flex flex-col w-full h-full bg-primary">
 	<!-- svelte-ignore a11y-click-events-have-key-events -->
