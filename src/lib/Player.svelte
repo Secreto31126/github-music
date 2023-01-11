@@ -38,15 +38,15 @@
 	}
 
 	function toggle() {
-		if (player.paused) {
-			player.play();
+		if (paused) {
+			play();
 		} else {
-			player.pause();
+			pause();
 		}
 	}
 
 	function stop() {
-		player.pause();
+		pause();
 		songs = null;
 	}
 
@@ -134,7 +134,7 @@
 	function barClick(event: MouseEvent) {
 		if (player) {
 			const x = event.clientX - progressBarRect.left;
-			progress = (x * player.duration) / progressBar.offsetWidth;
+			progress = (x * duration) / progressBar.offsetWidth;
 		}
 	}
 
@@ -147,7 +147,7 @@
 		}
 
 		if (player) {
-			player.pause();
+			pause();
 			url = null;
 		}
 
@@ -187,7 +187,7 @@
 	// Copilot insisted on this
 	onDestroy(() => {
 		if (player) {
-			player.pause();
+			pause();
 			player.src = '';
 		}
 	});
