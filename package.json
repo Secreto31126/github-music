@@ -40,7 +40,8 @@
 	"dependencies": {
 		"@auth/core": "^0.2.2",
 		"@auth/sveltekit": "^0.1.9",
-		"@octokit/rest": "^19.0.5"
+		"@octokit/rest": "^19.0.5",
+		"@vercel/analytics": "^0.1.6"
 	},
 	"lint-staged": {
 		"*.{js,cjs,ts,svelte}": "eslint --fix",
