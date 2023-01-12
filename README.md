@@ -1,38 +1,51 @@
-# create-svelte
+# GitHub Music
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte).
+Listen to your favorite music stored in a public or private GitHub Repository with this simple web app.
 
-## Creating a project
+![Home Page](docs/home.png)
 
-If you're seeing this, you've probably already done this step. Congrats!
+## How to use
 
-```bash
-# create a new project in the current directory
-npm create svelte@latest
+Visit [https://github-music.vercel.app](https://github-music.vercel.app), go through the most amazing landing page you will ever see, log in with your GitHub account, pick the repo where you have your audio files and you are good to go!
 
-# create a new project in my-app
-npm create svelte@latest my-app
-```
+### Supported files
 
-## Developing
+1. Audios:
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+   - mp3
+   - ogg
+   - wav
+   - Symbolic links to supported audio files (WIP)
 
-```bash
-npm run dev
+2. Images:
+   - jpg
+   - jpeg
+   - png
+   - gif
+   - webp
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+### How to include images
 
-## Building
+The app will look for images within the folder contents. Songs will pick the images at same level
 
-To create a production version of your app:
+### Small UX things that will change
 
-```bash
-npm run build
-```
+- To navigate a folder up, you need to press the "Seeing playlist: [name]" text. This will be replaced with a nicer UI in the future.
 
-You can preview the production build with `npm run preview`.
+- The Landing Page will be created... eventually...
 
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
+### Shortcuts
+
+- `Space`: Play/pause
+- `Ctrl` + `Space`: Stop playing
+- `Arrow Right`: Foward 10 seconds
+- `Ctrl` + `Arrow Right`: Next track
+- `Arrow Left`: Backward 10 seconds
+- `Ctrl` + `Arrow Left`: Previous track
+- `L`: Toggle loop
+
+## Attribution
+
+Most of the icons are from [Twemoji](https://twemoji.twitter.com/), which is licensed under CC-BY 4.0.
+
+The code is written in [SvelteKit](https://kit.svelte.dev/) and [Tailwind](https://tailwindcss.com/), both under [MIT license](LICENSE.md).
