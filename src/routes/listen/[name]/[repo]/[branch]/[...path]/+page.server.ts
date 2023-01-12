@@ -10,11 +10,11 @@ type Node = {
 	[path: string]: Node;
 };
 
-export const load = (async ({ params, cookies, url, setHeaders, fetch }) => {
+export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 	const name = params.name;
 	const repo = params.repo;
 	const path = params.path;
-	const branch = url.searchParams.get('branch') || 'main';
+	const branch = params.branch;
 
 	const token = cookies.get('access_token');
 
@@ -94,7 +94,7 @@ export const load = (async ({ params, cookies, url, setHeaders, fetch }) => {
 		// If folder
 		if (Object.keys(listed_dir[filename]).length) {
 			const cover_path = findCover(listed_dir[filename], `${list.path}/${filename}`);
-			images.push(cover_path ? getFileUrl(`/${name}/${repo}/${cover_path}`, fetch) : null);
+			images.push(cover_path ? getFileUrl(name, repo, branch, cover_path, fetch) : null);
 
 			list.files.push({
 				filename,
@@ -121,7 +121,7 @@ export const load = (async ({ params, cookies, url, setHeaders, fetch }) => {
 			}
 		} else if (isImage(filename) && !list.cover) {
 			list.cover_name = filename;
-			list.cover = await getFileUrl(`/${name}/${repo}/${list.path}/${filename}`, fetch);
+			list.cover = await getFileUrl(name, repo, branch, `${list.path}/${filename}`, fetch);
 		}
 	}
 

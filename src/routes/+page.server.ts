@@ -5,7 +5,7 @@ export const load = (async ({ parent, url }) => {
 	const { session } = await parent();
 
 	if (session?.user) {
-		throw redirect(302, `/${session.user.name}${url.search}`);
+		throw redirect(302, `/listen/${session.user.name}${url.search}`);
 	}
 	return {};
 }) satisfies PageServerLoad;

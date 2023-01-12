@@ -36,6 +36,6 @@ export const actions: Actions = {
 			return fail(400, { message: 'No repo selected, are you trying to break my app?' });
 		}
 
-		throw redirect(302, `/${params.name}/${repo}?branch=${branch}`);
+		throw redirect(302, `/listen/${params.name}/${repo}/${branch}`);
 	}
 };

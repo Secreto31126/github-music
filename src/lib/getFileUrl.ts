@@ -1,6 +1,12 @@
-export default async function getFileUrl(path: string, fetch: typeof window.fetch) {
+export default async function getFileUrl(
+	name: string,
+	repo: string,
+	branch: string,
+	path: string,
+	fetch: typeof window.fetch
+) {
 	try {
-		const request = await fetch(path);
+		const request = await fetch(`/listen/${name}/${repo}/${branch}/${path}`);
 		if (request.ok) {
 			return await request.text();
 		} else {

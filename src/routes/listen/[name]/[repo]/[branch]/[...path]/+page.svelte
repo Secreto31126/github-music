@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import type { Song } from '$lib/types';
+	import type { Page } from '@sveltejs/kit';
 
 	import Player from '$lib/Player.svelte';
 
@@ -13,7 +14,7 @@
 	export let data: PageData;
 
 	let index = 0;
-	let origin: URL;
+	let origin: Page<Record<string, string>, string | null>;
 	$: update = !!data.songs;
 	let songs = null as Array<Song> | null;
 
@@ -21,7 +22,7 @@
 		if (!song_data) return;
 
 		index = song_data.index;
-		origin = get(page).url;
+		origin = get(page);
 
 		// Trigger reactivity at the end
 		const temp = [] as Array<Song>;
@@ -64,10 +65,7 @@
 
 <main class="flex flex-col gap-4 px-2 pb-16">
 	{#if !list.root}
-		<a
-			href="{getParentPath($page.url.pathname, data.songs ? 2 : 1)}{$page.url.search}"
-			class="text-contrast"
-		>
+		<a href={getParentPath($page.url.pathname, data.songs ? 2 : 1)} class="text-contrast">
 			Seeing playlist: {list.name}
 		</a>
 	{:else}
@@ -77,7 +75,7 @@
 	{#each list.files as file}
 		<a
 			href="{data.songs ? getParentPath($page.url.pathname, 1) : $page.url.pathname}
-				/{file.filename}{$page.url.search}"
+				/{file.filename}"
 			data-sveltekit-noscroll={file.type === 'folder' ? 'off' : ''}
 			class="flex items-center space-x-2 h-16 w-fit"
 		>
