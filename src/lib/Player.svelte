@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Song } from './types';
+	import type { Page } from '@sveltejs/kit';
 
 	import { browser } from '$app/environment';
 	import { getParentPath, removeExtension } from '$lib/paths';
@@ -9,7 +10,7 @@
 
 	export let index = 0;
 	export let songs: Array<Song> | null;
-	export let origin: URL;
+	export let origin: Page<Record<string, string>, string | null>;
 
 	let retries = 0;
 	let last_requested: string;
@@ -198,10 +199,22 @@
 			retries++;
 			last_requested = songs[index].path;
 
-			url = await getFileUrl(`${getParentPath(origin.pathname, 1)}/${songs[index].name}`, fetch);
+			url = await getFileUrl(
+				origin.params.name,
+				origin.params.repo,
+				origin.params.branch,
+				`${getParentPath(origin.params.path, 1)}/${songs[index].name}`,
+				fetch
+			);
 
 			cover = songs[index].cover
-				? await getFileUrl(`${getParentPath(origin.pathname, 1)}/${songs[index].cover}`, fetch)
+				? await getFileUrl(
+						origin.params.name,
+						origin.params.repo,
+						origin.params.branch,
+						`${getParentPath(origin.params.path, 1)}/${songs[index].cover}`,
+						fetch
+				  )
 				: null;
 
 			progress = copy_progress;
@@ -212,11 +225,11 @@
 	}
 
 	onMount(() => {
-		if ($loop_type == 1) {
+		if ($loop_type === 1) {
 			loop_list = true;
 		}
 
-		if ($loop_type == 2) {
+		if ($loop_type === 2) {
 			loop_song = true;
 		}
 	});
@@ -252,7 +265,7 @@
 		/>
 		<div class="flex flex-col w-full max-w-md">
 			<a
-				href="{getParentPath(origin.pathname, 1)}{origin.search}"
+				href={getParentPath(origin.url.pathname, 1)}
 				class="whitespace-nowrap overflow-hidden text-ellipsis text-contrast text-lg"
 			>
 				{name_strcpy}

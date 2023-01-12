@@ -5,6 +5,7 @@ import { getRepoFile } from '$lib/server/github';
 export const GET = (async ({ cookies, params, setHeaders }) => {
 	const name = params.name;
 	const repo = params.repo;
+	const branch = params.branch;
 	const path = params.path;
 
 	const token = cookies.get('access_token');
