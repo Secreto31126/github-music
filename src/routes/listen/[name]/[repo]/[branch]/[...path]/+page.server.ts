@@ -119,7 +119,7 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 					cover: list.cover_name
 				});
 			}
-		} else if (isImage(filename) && !list.cover) {
+		} else if (!list.cover && isImage(filename)) {
 			list.cover_name = filename;
 			list.cover = await getFileUrl(name, repo, branch, `${list.path}/${filename}`, fetch);
 		}
