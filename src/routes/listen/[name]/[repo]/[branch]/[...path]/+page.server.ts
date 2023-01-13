@@ -160,15 +160,11 @@ function findCover(dir: Node, path: string): string | null {
 }
 
 function isImage(filename: string) {
-	return (
-		filename.endsWith('.jpg') ||
-		filename.endsWith('.jpeg') ||
-		filename.endsWith('.png') ||
-		filename.endsWith('.gif') ||
-		filename.endsWith('.webp')
-	);
+	const supported = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+	return supported.includes(filename.toLowerCase().split('.').at(-1) ?? '');
 }
 
 function isAudio(filename: string) {
-	return filename.endsWith('.mp3') || filename.endsWith('.ogg') || filename.endsWith('.wav');
+	const supported = ['mp3', 'ogg', 'wav'];
+	return supported.includes(filename.toLowerCase().split('.').at(-1) ?? '');
 }
