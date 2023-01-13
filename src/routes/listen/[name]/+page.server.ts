@@ -1,7 +1,7 @@
-import { redirect, fail } from '@sveltejs/kit';
+import { redirect } from '@sveltejs/kit';
 import { getRepoList, getRepoListOf } from '$lib/server/github';
 
-import type { PageServerLoad, Actions } from './$types';
+import type { PageServerLoad } from './$types';
 
 export const load = (async ({ cookies, params, parent, setHeaders }) => {
 	const { session } = await parent();
@@ -25,17 +25,3 @@ export const load = (async ({ cookies, params, parent, setHeaders }) => {
 		repos: (await repos).data.map((repo) => ({ name: repo.name, branch: repo.default_branch }))
 	};
 }) satisfies PageServerLoad;
-
-export const actions: Actions = {
-	repo: async ({ request, params }) => {
-		const data = await request.formData();
-		const repo = data.get('repo');
-		const branch = data.get('branch') || 'main';
-
-		if (!repo) {
-			return fail(400, { message: 'No repo selected, are you trying to break my app?' });
-		}
-
-		throw redirect(302, `/listen/${params.name}/${repo}/${branch}`);
-	}
-};
