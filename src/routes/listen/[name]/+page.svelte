@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import type { PageData, ActionData } from './$types';
+	import type { PageData } from './$types';
 
 	export let data: PageData;
-	export let form: ActionData;
 
 	let repo = '';
-	$: branch = repo ? data.repos.find((r) => r.name === repo)?.branch || 'main' : 'main';
+	let branch = '';
+	$: default_branch = repo ? data.repos.find((r) => r.name === repo)?.branch || 'main' : 'main';
 
-	let error = $page.url.searchParams.get('error') || form?.message;
+	let error = $page.url.searchParams.get('error');
 </script>
 
 <svelte:head>
@@ -16,10 +16,13 @@
 </svelte:head>
 
 <main class="mx-2 mt-16 text-center">
-	<form class="text-center flex flex-col md:block" method="post" action="?/repo">
+	<form
+		class="text-center flex flex-col md:block"
+		method="get"
+		action="{$page.url.pathname}/{repo}/{branch || default_branch}"
+	>
 		<div class="inline-block relative mb-2">
 			<select
-				name="repo"
 				bind:value={repo}
 				required
 				class="block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline"
@@ -38,10 +41,9 @@
 			</div>
 		</div>
 		<input
-			name="branch"
 			type="text"
-			value={repo ? branch : ''}
-			placeholder="Branch ({branch})"
+			bind:value={branch}
+			placeholder="Branch ({default_branch})"
 			class="text-center shadow appearance-none border rounded py-2 px-3 mb-2 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
 		/>
 		<button
