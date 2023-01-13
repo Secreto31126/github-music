@@ -165,6 +165,9 @@ function isImage(filename: string) {
 }
 
 function isAudio(filename: string) {
-	const supported = ['mp3', 'ogg', 'wav'];
+	/**
+	 * @see https://en.wikipedia.org/wiki/HTML5_audio#Supported_audio_coding_formats
+	 */
+	const supported = ['wav', 'mp3', 'mp4', 'adts', 'ogg', 'webm', 'flac'];
 	return supported.includes(filename.toLowerCase().split('.').at(-1) ?? '');
 }
