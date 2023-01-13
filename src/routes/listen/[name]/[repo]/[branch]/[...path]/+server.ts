@@ -16,7 +16,7 @@ export const GET = (async ({ cookies, params, setHeaders }) => {
 
 	let request;
 	try {
-		request = await getRepoFile(token, name, repo, path);
+		request = await getRepoFile(token, name, repo, path, branch);
 	} catch (e) {
 		throw error(404, { message: 'File not found' });
 	}

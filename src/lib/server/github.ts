@@ -27,11 +27,18 @@ export async function getRepoStructure(auth: string, owner: string, repo: string
 	});
 }
 
-export async function getRepoFile(auth: string, owner: string, repo: string, path = '') {
+export async function getRepoFile(
+	auth: string,
+	owner: string,
+	repo: string,
+	path = '',
+	ref = 'main'
+) {
 	const octokit = new Octokit({ auth });
 	return await octokit.repos.getContent({
 		owner,
 		repo,
-		path
+		path,
+		ref
 	});
 }
