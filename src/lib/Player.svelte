@@ -207,6 +207,11 @@
 				fetch
 			);
 
+			if (!url) {
+				setupAudio();
+				return;
+			}
+
 			cover = songs[index].cover
 				? await getFileUrl(
 						origin.params.name,
@@ -220,7 +225,6 @@
 			progress = copy_progress;
 		} else {
 			url = null;
-			retries = 0;
 		}
 	}
 
