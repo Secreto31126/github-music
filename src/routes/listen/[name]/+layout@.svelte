@@ -7,7 +7,7 @@
 
 <header class="fixed top-0 left-0 w-full h-14 flex items-center justify-between py-2 z-50">
 	<a href="/{$page.url.pathname.split('/').slice(1, 4).join('/')}" class="h-full">
-		<img src="/favicon.png" alt="Logo" class="aspect-square h-full" />
+		<img src="/svelte.png" alt="Logo" class="aspect-square h-full" />
 	</a>
 	<div class="flex gap-2 items-center justify-end mr-2">
 		<div class="text-right text-contrast">
