@@ -90,20 +90,20 @@
 		// 00 default -> 01 loop song
 		if (!loop_song && !loop_list) {
 			loop_list = true;
-			$loop_type = 1;
+			$loop_type = '1';
 		}
 
 		// 01 loop list -> 10 loop song
 		else if (!loop_song && loop_list) {
 			loop_song = true;
 			loop_list = false;
-			$loop_type = 2;
+			$loop_type = '2';
 		}
 
 		// 10 loop song -> 00 default
 		else {
 			loop_song = false;
-			$loop_type = 0;
+			$loop_type = '0';
 		}
 	}
 	//#endregion
@@ -225,11 +225,11 @@
 	}
 
 	onMount(() => {
-		if ($loop_type === 1) {
+		if ($loop_type === '1') {
 			loop_list = true;
 		}
 
-		if ($loop_type === 2) {
+		if ($loop_type === '2') {
 			loop_song = true;
 		}
 	});
