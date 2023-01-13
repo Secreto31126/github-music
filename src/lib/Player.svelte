@@ -113,7 +113,7 @@
 		if (browser && songs?.[index] && url && 'mediaSession' in navigator) {
 			navigator.mediaSession.metadata = new MediaMetadata({
 				title: songs[index].name,
-				artwork: [{ src: cover || '/favicon.png', type: 'image/png' }]
+				artwork: [{ src: cover || '/svelte.png', type: 'image/png' }]
 			});
 
 			navigator.mediaSession.setActionHandler('play', play);
@@ -127,7 +127,7 @@
 
 	function missingImg(event: Event) {
 		const target = event.target as HTMLImageElement;
-		target.src = '/favicon.png';
+		target.src = '/svelte.png';
 	}
 
 	let progressBar: HTMLDivElement;
@@ -258,7 +258,7 @@
 	</div>
 	<div class="flex justify-center items-center w-full overflow-hidden gap-2 px-2">
 		<img
-			src={cover || '/favicon.png'}
+			src={cover || '/svelte.png'}
 			alt="Cover"
 			on:error={missingImg}
 			class="aspect-square h-2/3"

@@ -45,7 +45,7 @@
 
 	function missingImg(event: Event) {
 		const target = event.target as HTMLImageElement;
-		target.src = '/favicon.png';
+		target.src = '/svelte.png';
 	}
 
 	$: if ($navigating && $navigating.from?.url.href === $navigating.to?.url.href) {
@@ -80,7 +80,7 @@
 			class="flex items-center space-x-2 h-16 w-fit"
 		>
 			<img
-				src={file.cover || '/favicon.png'}
+				src={file.cover || '/svelte.png'}
 				alt="Cover"
 				on:error={missingImg}
 				class="aspect-square h-full"
