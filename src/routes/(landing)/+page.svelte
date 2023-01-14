@@ -2,7 +2,7 @@
 	import { fade } from 'svelte/transition';
 </script>
 
-<div transition:fade={{ duration: 500 }} class="flex flex-col items-center gap-4 py-4">
+<div transition:fade class="flex flex-col items-center gap-4 py-4">
 	<h1 class="text-3xl font-bold">GitHub Music</h1>
 	<a
 		href="/login"
