@@ -1,22 +1,23 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import type { Song } from '$lib/types';
+	import type { Song as SongType } from '$lib/types';
 	import type { Page } from '@sveltejs/kit';
 
 	import Player from '$lib/components/Player.svelte';
+	import Song from '$lib/components/Song.svelte';
 
 	import { navigating, page } from '$app/stores';
 	import { get } from 'svelte/store';
 	import { fade, fly } from 'svelte/transition';
 	import { invalidateAll } from '$app/navigation';
-	import { getParentPath, removeExtension } from '$lib/utils/paths';
+	import { getParentPath } from '$lib/utils/paths';
 
 	export let data: PageData;
 
 	let index = 0;
 	let origin: Page<Record<string, string>, string | null>;
 	$: update = !!data.songs;
-	let songs = null as Array<Song> | null;
+	let songs = null as Array<SongType> | null;
 
 	async function setSongs(song_data: PageData['songs']) {
 		if (!song_data) return;
@@ -25,7 +26,7 @@
 		origin = get(page);
 
 		// Trigger reactivity at the end
-		const temp = [] as Array<Song>;
+		const temp = [] as Array<SongType>;
 		for (const song of song_data.list) {
 			temp.push({ ...song });
 		}
@@ -43,11 +44,6 @@
 		list = { ...data.list, files: [...data.list.files] };
 	}
 
-	function missingImg(event: Event) {
-		const target = event.target as HTMLImageElement;
-		target.src = '/svelte.png';
-	}
-
 	$: if ($navigating && $navigating.from?.url.href === $navigating.to?.url.href) {
 		invalidateAll();
 	}
@@ -59,7 +55,7 @@
 	</title>
 </svelte:head>
 
-<main class="flex flex-col gap-4 px-2 pb-16">
+<main class="flex flex-col gap-4 px-2 pb-16 w-fit">
 	{#if !list.root}
 		<a href={getParentPath($page.url.pathname, data.songs ? 2 : 1)} class="text-contrast">
 			Seeing playlist: {list.name}
@@ -69,22 +65,12 @@
 	{/if}
 
 	{#each list.files as file}
-		<a
-			href="{data.songs ? getParentPath($page.url.pathname, 1) : $page.url.pathname}
-				/{file.filename}"
-			data-sveltekit-noscroll={file.type === 'folder' ? 'off' : ''}
-			class="flex items-center space-x-2 h-16 w-fit"
-		>
-			<img
-				src={file.cover || '/svelte.png'}
-				alt="Cover"
-				on:error={missingImg}
-				class="aspect-square h-full"
-			/>
-			<p class="text-contrast">
-				{file.type === 'folder' ? file.filename : removeExtension(file.filename)}
-			</p>
-		</a>
+		<Song
+			{file}
+			href="{data.songs
+				? getParentPath($page.url.pathname, 1)
+				: $page.url.pathname}/{file.filename}"
+		/>
 	{/each}
 
 	{#if songs}
