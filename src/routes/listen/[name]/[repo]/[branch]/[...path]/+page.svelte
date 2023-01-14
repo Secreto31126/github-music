@@ -55,7 +55,7 @@
 	</title>
 </svelte:head>
 
-<main class="flex flex-col gap-4 px-2 pb-16 w-fit">
+<main class="flex flex-col gap-4 px-2 pb-16 w-fit min-w-[33%]">
 	{#if !list.root}
 		<a href={getParentPath($page.url.pathname, data.songs ? 2 : 1)} class="text-contrast">
 			Seeing playlist: {list.name}
