@@ -2,7 +2,7 @@
 
 Listen to your favorite music stored in a public or private GitHub Repository with this simple web app.
 
-![Home Page](docs/home.png)
+![Home Page](static/home.png)
 
 ## How to use
 
@@ -31,8 +31,6 @@ The app will look for images within the folder contents. Songs will pick the ima
 ### Small UX things that will change
 
 - To navigate a folder up, you need to press the "Seeing playlist: [name]" text. This will be replaced with a nicer UI in the future.
-
-- The Landing Page will be created... eventually...
 
 ### Shortcuts
 
