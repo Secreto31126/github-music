@@ -12,9 +12,13 @@ Visit [https://github-music.vercel.app](https://github-music.vercel.app), go thr
 
 1. Audios:
 
-   - mp3
-   - ogg
    - wav
+   - mp3
+   - mp4
+   - adts
+   - ogg
+   - webm
+   - flac
    - Symbolic links to supported audio files (WIP)
 
 2. Images:
