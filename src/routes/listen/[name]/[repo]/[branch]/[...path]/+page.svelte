@@ -3,13 +3,13 @@
 	import type { Song } from '$lib/types';
 	import type { Page } from '@sveltejs/kit';
 
-	import Player from '$lib/Player.svelte';
+	import Player from '$lib/components/Player.svelte';
 
 	import { navigating, page } from '$app/stores';
 	import { get } from 'svelte/store';
 	import { fade, fly } from 'svelte/transition';
 	import { invalidateAll } from '$app/navigation';
-	import { getParentPath, removeExtension } from '$lib/paths';
+	import { getParentPath, removeExtension } from '$lib/utils/paths';
 
 	export let data: PageData;
 

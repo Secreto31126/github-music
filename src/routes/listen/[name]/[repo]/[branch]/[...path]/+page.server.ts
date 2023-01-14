@@ -1,7 +1,7 @@
 import { error, redirect } from '@sveltejs/kit';
 import { getRepoStructure } from '$lib/server/github';
-import { getName, getParentPath } from '$lib/paths';
-import getFileUrl from '$lib/getFileUrl';
+import { getName, getParentPath } from '$lib/utils/paths';
+import getFileUrl from '$lib/utils/getFileUrl';
 
 import type { Song } from '$lib/types';
 import type { PageServerLoad } from './$types';

@@ -1,12 +1,12 @@
 <script lang="ts">
-	import type { Song } from './types';
+	import type { Song } from '$lib/types';
 	import type { Page } from '@sveltejs/kit';
 
 	import { browser } from '$app/environment';
-	import { getParentPath, removeExtension } from '$lib/paths';
+	import { getParentPath, removeExtension } from '$lib/utils/paths';
 	import { loop_type } from '$lib/stores';
 	import { onDestroy, onMount } from 'svelte';
-	import getFileUrl from '$lib/getFileUrl';
+	import getFileUrl from '$lib/utils/getFileUrl';
 
 	export let index = 0;
 	export let songs: Array<Song> | null;
