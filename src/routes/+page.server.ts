@@ -9,3 +9,5 @@ export const load = (async ({ parent, url }) => {
 	}
 	return {};
 }) satisfies PageServerLoad;
+
+export const prerender = true;
