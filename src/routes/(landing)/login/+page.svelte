@@ -3,25 +3,19 @@
 	import { navigating } from '$app/stores';
 	import { fade } from 'svelte/transition';
 
-	let main: HTMLElement;
+	// Prevent overflow on page load
+	let html: HTMLElement;
 	let loading = !!$navigating;
-	$: if (loading && main) {
-		main.style.display = 'none';
+	$: if (loading && html) {
+		html.style.display = 'none';
 		setTimeout(() => {
-			main.style.display = 'flex';
+			html.style.display = 'flex';
 			loading = false;
 		}, 500);
 	}
 </script>
 
-<svelte:head>
-	<title>GitHub Music</title>
-</svelte:head>
-
-<main
-	bind:this={main}
-	class="flex flex-col items-center justify-center bg-gradient-to-l from-gradient to-primary w-screen h-screen"
->
+<div bind:this={html} class="flex flex-col items-center justify-center h-screen">
 	{#if !loading}
 		<button
 			on:click={() => signIn('github')}
@@ -37,4 +31,4 @@
 			<span class="pl-3">Sign In with GitHub</span>
 		</button>
 	{/if}
-</main>
+</div>
