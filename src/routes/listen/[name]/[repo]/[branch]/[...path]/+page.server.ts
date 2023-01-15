@@ -1,9 +1,9 @@
 import { error, redirect } from '@sveltejs/kit';
 import { getRepoStructure } from '$lib/server/github';
-import { getName, getParentPath } from '$lib/paths';
-import getFileUrl from '$lib/getFileUrl';
+import { getName, getParentPath, removeExtension } from '$lib/utils/paths';
+import getFileUrl from '$lib/utils/getFileUrl';
 
-import type { Song } from '$lib/types';
+import type { File, Song } from '$lib/types';
 import type { PageServerLoad } from './$types';
 
 type Node = {
@@ -75,19 +75,15 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 		root: parent === null,
 		name: parent === null ? '/' : getName(path, is_path_to_audio ? 2 : 1) || '/',
 		path: is_path_to_audio ? getParentPath(path, 1) : path,
-		cover: null as string | null,
-		cover_name: null as string | null,
-		files: [] as Array<{
-			filename: string;
-			cover: string | null;
-			type: 'folder' | 'song';
-		}>
+		cover_url: null as string | null,
+		cover_path: null as string | null,
+		files: [] as Array<File>
 	};
 
 	// If the path is to a song, use the parent folder
 	const listed_dir = is_path_to_audio ? parent || root : dir;
 
-	// Here are stored the images' promises to later fill list.files[].cover
+	// Here are stored the images' promises to later fill list.files[].cover_url
 	const images = [] as (Promise<string | null> | null)[];
 
 	for (const filename in listed_dir) {
@@ -97,14 +93,16 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 			images.push(cover_path ? getFileUrl(name, repo, branch, cover_path, fetch) : null);
 
 			list.files.push({
+				display_name: filename,
 				filename,
-				cover: null,
+				cover_url: null,
 				type: 'folder'
 			});
 		} else if (isAudio(filename)) {
 			list.files.push({
+				display_name: removeExtension(filename),
 				filename,
-				cover: list.cover,
+				cover_url: list.cover_url,
 				type: 'song'
 			});
 
@@ -114,32 +112,34 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 				}
 
 				songs.list.push({
-					name: filename,
+					display_name: removeExtension(filename),
 					path: `${list.path}/${filename}`,
-					cover: list.cover_name
+					cover_path: list.cover_path
 				});
 			}
-		} else if (!list.cover && isImage(filename)) {
-			list.cover_name = filename;
-			list.cover = await getFileUrl(name, repo, branch, `${list.path}/${filename}`, fetch);
+		} else if (!list.cover_url && isImage(filename)) {
+			list.cover_path = `${list.path}/${filename}`;
+			list.cover_url = await getFileUrl(name, repo, branch, `${list.path}/${filename}`, fetch);
 		}
 	}
 
 	let i = 0;
 	for (const cover of await Promise.all(images)) {
-		list.files[i++].cover = cover;
+		list.files[i++].cover_url = cover;
 	}
 
 	// Fill missing covers
 	for (const file of list.files) {
-		if (!file.cover) {
-			file.cover = list.cover;
+		if (!file.cover_url) {
+			file.cover_url = list.cover_url;
 		}
 	}
 
-	if (songs && list.cover_name) {
+	if (songs && list.cover_path) {
 		for (const song of songs.list) {
-			song.cover = list.cover_name;
+			if (!song.cover_path) {
+				song.cover_path = list.cover_path;
+			}
 		}
 	}
 

@@ -1,22 +1,24 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import type { Song } from '$lib/types';
+	import type { Song as SongType } from '$lib/types';
 	import type { Page } from '@sveltejs/kit';
 
-	import Player from '$lib/Player.svelte';
+	import Player from '$lib/components/Player.svelte';
+	import Album from '$lib/components/Album.svelte';
+	import Song from '$lib/components/Song.svelte';
 
 	import { navigating, page } from '$app/stores';
 	import { get } from 'svelte/store';
 	import { fade, fly } from 'svelte/transition';
 	import { invalidateAll } from '$app/navigation';
-	import { getParentPath, removeExtension } from '$lib/paths';
+	import { getParentPath } from '$lib/utils/paths';
 
 	export let data: PageData;
 
 	let index = 0;
 	let origin: Page<Record<string, string>, string | null>;
 	$: update = !!data.songs;
-	let songs = null as Array<Song> | null;
+	let songs = null as Array<SongType> | null;
 
 	async function setSongs(song_data: PageData['songs']) {
 		if (!song_data) return;
@@ -25,7 +27,7 @@
 		origin = get(page);
 
 		// Trigger reactivity at the end
-		const temp = [] as Array<Song>;
+		const temp = [] as Array<SongType>;
 		for (const song of song_data.list) {
 			temp.push({ ...song });
 		}
@@ -43,11 +45,6 @@
 		list = { ...data.list, files: [...data.list.files] };
 	}
 
-	function missingImg(event: Event) {
-		const target = event.target as HTMLImageElement;
-		target.src = '/svelte.png';
-	}
-
 	$: if ($navigating && $navigating.from?.url.href === $navigating.to?.url.href) {
 		invalidateAll();
 	}
@@ -55,45 +52,44 @@
 
 <svelte:head>
 	<title>
-		{songs?.[index]
-			? removeExtension(songs[index].name)
-			: list.name !== '/'
-			? list.name
-			: 'GitHub Music'}
+		{songs?.[index]?.display_name ?? !list.root ? list.name : 'GitHub Music'}
 	</title>
 </svelte:head>
 
-<main class="flex flex-col gap-4 px-2 pb-16">
-	{#if !list.root}
-		<a href={getParentPath($page.url.pathname, data.songs ? 2 : 1)} class="text-contrast">
-			Seeing playlist: {list.name}
-		</a>
-	{:else}
-		<p class="text-contrast">Seeing playlist: /</p>
-	{/if}
+<main class="px-4 pb-10">
+	<div class="mb-4">
+		{#if !list.root}
+			<a href={getParentPath($page.url.pathname, data.songs ? 2 : 1)} class="text-contrast">
+				Seeing playlist: {list.name}
+			</a>
+		{:else}
+			<p class="text-contrast">Seeing playlist: /</p>
+		{/if}
+	</div>
 
-	{#each list.files as file}
-		<a
-			href="{data.songs ? getParentPath($page.url.pathname, 1) : $page.url.pathname}
-				/{file.filename}"
-			data-sveltekit-noscroll={file.type === 'folder' ? 'off' : ''}
-			class="flex items-center space-x-2 h-16 w-fit"
-		>
-			<img
-				src={file.cover || '/svelte.png'}
-				alt="Cover"
-				on:error={missingImg}
-				class="aspect-square h-full"
-			/>
-			<p class="text-contrast">
-				{file.type === 'folder' ? file.filename : removeExtension(file.filename)}
-			</p>
-		</a>
-	{/each}
+	<div
+		class="grid justify-items-center grid-cols-1 min-[320px]:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 px-2"
+	>
+		{#each list.files as file}
+			{@const href = `${data.songs ? getParentPath($page.url.pathname, 1) : $page.url.pathname}/${
+				file.filename
+			}`}
+			{#if file.type === 'folder'}
+				<Album {file} {href} />
+			{/if}
+		{/each}
+	</div>
 
-	{#if songs}
-		<span class="h-2" />
-	{/if}
+	<div class="flex flex-col gap-4 px-2 pb-16 w-fit min-w-[33%]">
+		{#each list.files as file}
+			{@const href = `${data.songs ? getParentPath($page.url.pathname, 1) : $page.url.pathname}/${
+				file.filename
+			}`}
+			{#if file.type === 'song'}
+				<Song {file} {href} />
+			{/if}
+		{/each}
+	</div>
 </main>
 
 {#if songs}

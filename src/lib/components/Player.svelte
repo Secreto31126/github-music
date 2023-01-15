@@ -1,12 +1,12 @@
 <script lang="ts">
-	import type { Song } from './types';
+	import type { Song } from '$lib/types';
 	import type { Page } from '@sveltejs/kit';
 
 	import { browser } from '$app/environment';
-	import { getParentPath, removeExtension } from '$lib/paths';
+	import { getParentPath } from '$lib/utils/paths';
 	import { loop_type } from '$lib/stores';
 	import { onDestroy, onMount } from 'svelte';
-	import getFileUrl from '$lib/getFileUrl';
+	import getFileUrl from '$lib/utils/getFileUrl';
 
 	export let index = 0;
 	export let songs: Array<Song> | null;
@@ -23,7 +23,7 @@
 
 	let name_strcpy: string;
 	$: if (songs) {
-		name_strcpy = removeExtension(songs[index].name);
+		name_strcpy = songs[index].display_name;
 	}
 
 	let player: HTMLAudioElement;
@@ -112,7 +112,7 @@
 		paused;
 		if (browser && songs?.[index] && url && 'mediaSession' in navigator) {
 			navigator.mediaSession.metadata = new MediaMetadata({
-				title: songs[index].name,
+				title: songs[index].display_name,
 				artwork: [{ src: cover || '/svelte.png', type: 'image/png' }]
 			});
 
@@ -203,7 +203,7 @@
 				origin.params.name,
 				origin.params.repo,
 				origin.params.branch,
-				`${getParentPath(origin.params.path, 1)}/${songs[index].name}`,
+				songs[index].path,
 				fetch
 			);
 
@@ -212,12 +212,12 @@
 				return;
 			}
 
-			cover = songs[index].cover
+			cover = songs[index].cover_path
 				? await getFileUrl(
 						origin.params.name,
 						origin.params.repo,
 						origin.params.branch,
-						`${getParentPath(origin.params.path, 1)}/${songs[index].cover}`,
+						songs[index].cover_path,
 						fetch
 				  )
 				: null;
