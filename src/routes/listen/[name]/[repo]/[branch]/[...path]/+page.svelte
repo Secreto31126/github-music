@@ -4,6 +4,7 @@
 	import type { Page } from '@sveltejs/kit';
 
 	import Player from '$lib/components/Player.svelte';
+	import Album from '$lib/components/Album.svelte';
 	import Song from '$lib/components/Song.svelte';
 
 	import { navigating, page } from '$app/stores';
@@ -55,27 +56,40 @@
 	</title>
 </svelte:head>
 
-<main class="flex flex-col gap-4 px-2 pb-16 w-fit min-w-[33%]">
-	{#if !list.root}
-		<a href={getParentPath($page.url.pathname, data.songs ? 2 : 1)} class="text-contrast">
-			Seeing playlist: {list.name}
-		</a>
-	{:else}
-		<p class="text-contrast">Seeing playlist: /</p>
-	{/if}
+<main class="px-4 pb-10">
+	<div class="mb-4">
+		{#if !list.root}
+			<a href={getParentPath($page.url.pathname, data.songs ? 2 : 1)} class="text-contrast">
+				Seeing playlist: {list.name}
+			</a>
+		{:else}
+			<p class="text-contrast">Seeing playlist: /</p>
+		{/if}
+	</div>
 
-	{#each list.files as file}
-		<Song
-			{file}
-			href="{data.songs
-				? getParentPath($page.url.pathname, 1)
-				: $page.url.pathname}/{file.filename}"
-		/>
-	{/each}
+	<div
+		class="grid justify-items-center grid-cols-1 min-[320px]:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 px-2"
+	>
+		{#each list.files as file}
+			{@const href = `${data.songs ? getParentPath($page.url.pathname, 1) : $page.url.pathname}/${
+				file.filename
+			}`}
+			{#if file.type === 'folder'}
+				<Album {file} {href} />
+			{/if}
+		{/each}
+	</div>
 
-	{#if songs}
-		<span class="h-2" />
-	{/if}
+	<div class="flex flex-col gap-4 px-2 pb-16 w-fit min-w-[33%]">
+		{#each list.files as file}
+			{@const href = `${data.songs ? getParentPath($page.url.pathname, 1) : $page.url.pathname}/${
+				file.filename
+			}`}
+			{#if file.type === 'song'}
+				<Song {file} {href} />
+			{/if}
+		{/each}
+	</div>
 </main>
 
 {#if songs}
