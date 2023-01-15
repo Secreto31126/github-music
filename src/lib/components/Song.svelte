@@ -10,9 +10,9 @@
 	}
 </script>
 
-<a {href} data-sveltekit-noscroll={file.type === 'folder' ? 'off' : ''}>
+<a {href} data-sveltekit-noscroll>
 	<div
-		class="flex items-center gap-x-4 rounded-md hover:shadow-xl transition-shadow duration-300 pr-4 h-20 overflow-hidden"
+		class="flex items-center gap-x-4 rounded-md hover:shadow-xl hover:bg-gradient hover:bg-opacity-25 transition-all duration-300 pr-4 h-20 overflow-hidden"
 	>
 		<img
 			src={file.cover_url || '/svelte.png'}
