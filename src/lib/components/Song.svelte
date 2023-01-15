@@ -10,7 +10,7 @@
 	}
 </script>
 
-<a {href}>
+<a {href} data-sveltekit-noscroll={file.type === 'folder' ? 'off' : ''}>
 	<div
 		class="flex items-center gap-x-4 rounded-md hover:shadow-xl transition-shadow duration-300 pr-4 h-20 overflow-hidden"
 	>
