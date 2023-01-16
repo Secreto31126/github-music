@@ -215,6 +215,9 @@
 						origin.params.name,
 						origin.params.repo,
 						origin.params.branch,
+						// Dumb typescript, IDK why it doesn't like this
+						/* eslint-disable @typescript-eslint/ban-ts-comment */
+						// @ts-ignore
 						songs[index].cover_path,
 						fetch
 				  )
