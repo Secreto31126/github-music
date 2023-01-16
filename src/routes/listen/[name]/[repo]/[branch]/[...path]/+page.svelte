@@ -52,7 +52,7 @@
 
 <svelte:head>
 	<title>
-		{songs?.[index]?.display_name ?? !list.root ? list.name : 'GitHub Music'}
+		{songs?.[index]?.display_name ?? (!list.root ? list.name : 'GitHub Music')}
 	</title>
 </svelte:head>
 
