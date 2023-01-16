@@ -5,7 +5,7 @@
 	import { browser } from '$app/environment';
 	import { getParentPath } from '$lib/utils/paths';
 	import { loop_type } from '$lib/stores';
-	import { onDestroy, onMount } from 'svelte';
+	import { onDestroy } from 'svelte';
 	import getFileUrl from '$lib/utils/getFileUrl';
 
 	export let index = 0;
@@ -59,9 +59,6 @@
 		player.currentTime += 10;
 	}
 
-	let loop_list = false;
-	let loop_song = false;
-
 	function previous() {
 		if (progress > 3) {
 			player.currentTime = 0;
@@ -70,7 +67,7 @@
 
 		let temp = index - 1;
 		if (temp < 0) {
-			if (loop_list) {
+			if ($loop_type === 'list') {
 				temp = (songs?.length || 0) - 1;
 			} else {
 				return;
@@ -82,7 +79,7 @@
 
 	function next() {
 		let temp = index + 1;
-		if (loop_list) {
+		if ($loop_type === 'list') {
 			temp %= songs?.length || 1;
 		} else if ((songs?.length || 0) <= temp) {
 			return;
@@ -92,23 +89,19 @@
 	}
 
 	function loop() {
-		// 00 default -> 01 loop song
-		if (!loop_song && !loop_list) {
-			loop_list = true;
-			$loop_type = '1';
-		}
+		// default -> loop song
+		switch ($loop_type) {
+			case 'none':
+				$loop_type = 'list';
+				break;
 
-		// 01 loop list -> 10 loop song
-		else if (!loop_song && loop_list) {
-			loop_song = true;
-			loop_list = false;
-			$loop_type = '2';
-		}
+			case 'list':
+				$loop_type = 'song';
+				break;
 
-		// 10 loop song -> 00 default
-		else {
-			loop_song = false;
-			$loop_type = '0';
+			default:
+				$loop_type = 'none';
+				break;
 		}
 	}
 	//#endregion
@@ -233,16 +226,6 @@
 		}
 	}
 
-	onMount(() => {
-		if ($loop_type === '1') {
-			loop_list = true;
-		}
-
-		if ($loop_type === '2') {
-			loop_song = true;
-		}
-	});
-
 	// Copilot insisted on this
 	onDestroy(() => {
 		if (player) {
@@ -254,7 +237,7 @@
 	$: index, origin, setupAudio();
 
 	$: if (browser && player) {
-		player.loop = loop_song;
+		player.loop = $loop_type === 'song';
 	}
 </script>
 
@@ -325,7 +308,7 @@
 								<svg
 									xmlns="http://www.w3.org/2000/svg"
 									viewBox="0 0 36 36"
-									class="fill-{loop_list ? 'selected' : 'contrast'}"
+									class="fill-{$loop_type === 'list' ? 'selected' : 'contrast'}"
 								>
 									<!-- <path fill="#3B88C3" d="M36 32c0 2.209-1.791 4-4 4H4c-2.209 0-4-1.791-4-4V4c0-2.209 1.791-4 4-4h28c2.209 0 4 1.791 4 4v28z"/> -->
 									<path
