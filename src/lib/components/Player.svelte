@@ -31,11 +31,11 @@
 
 	//#region Player Comands
 	function play() {
-		player.play();
+		player?.play();
 	}
 
 	function pause() {
-		player.pause();
+		player?.pause();
 	}
 
 	function toggle() {
@@ -63,6 +63,11 @@
 	let loop_song = false;
 
 	function previous() {
+		if (progress > 3) {
+			player.currentTime = 0;
+			return;
+		}
+
 		let temp = index - 1;
 		if (temp < 0) {
 			if (loop_list) {
