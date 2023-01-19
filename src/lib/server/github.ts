@@ -2,8 +2,7 @@ import { Octokit } from '@octokit/rest';
 
 export async function getUser(auth: string) {
 	const octokit = new Octokit({ auth });
-	const user = await octokit.users.getAuthenticated();
-	return user.data;
+	return await octokit.users.getAuthenticated();
 }
 
 export async function getRepoList(auth: string) {
