@@ -11,7 +11,6 @@ Visit [https://github-music.vercel.app](https://github-music.vercel.app), go thr
 ### Supported files
 
 1. Audios:
-
    - wav
    - mp3
    - mp4
@@ -19,7 +18,7 @@ Visit [https://github-music.vercel.app](https://github-music.vercel.app), go thr
    - ogg
    - webm
    - flac
-   - Symbolic links to supported audio files (WIP)
+   - Symbolic links to supported audio files
 
 2. Images:
    - jpg

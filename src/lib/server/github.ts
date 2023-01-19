@@ -47,3 +47,19 @@ export async function getRepoFile(
 		ref
 	});
 }
+
+export async function getSymlinkTarget(
+	auth: string,
+	owner: string,
+	repo: string,
+	path: string,
+	ref: string | undefined
+): Promise<string | null> {
+	try {
+		const request = await getRepoFile(auth, owner, repo, path, ref);
+		if (Array.isArray(request.data) || request.data.type !== 'symlink') return null;
+		return request.data.target;
+	} catch (error) {
+		return null;
+	}
+}

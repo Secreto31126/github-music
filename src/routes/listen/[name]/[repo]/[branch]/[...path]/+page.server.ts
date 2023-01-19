@@ -1,5 +1,5 @@
 import { error, redirect } from '@sveltejs/kit';
-import { getRepoStructure } from '$lib/server/github';
+import { getRepoStructure, getSymlinkTarget } from '$lib/server/github';
 import { getName, getParentPath, removeExtension } from '$lib/utils/paths';
 import getFileUrl from '$lib/utils/getFileUrl';
 
@@ -7,7 +7,7 @@ import type { File, Song } from '$lib/types';
 import type { PageServerLoad } from './$types';
 
 type Node = {
-	[path: string]: Node;
+	[path: string]: Node | number;
 };
 
 export const load = (async ({ params, cookies, setHeaders, fetch }) => {
@@ -41,27 +41,35 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 		const parts = node.path.split('/');
 
 		let current = root;
-		for (const part of parts) {
-			if (!current[part]) {
-				current[part] = {} as Node;
+		for (let i = 0; i < parts.length; i++) {
+			const part = parts[i];
+
+			// If last part and not a folder
+			if (i === parts.length - 1 && node.type !== 'tree') {
+				current[part] = parseInt(node.mode || '1');
+			} else {
+				if (!current[part]) {
+					current[part] = {} as Node;
+				}
+
+				current = current[part] as Node;
 			}
-			current = current[part] as Node;
 		}
 	}
 
-	let dir: Node | undefined = root;
-	let parent = null as Node | null;
-	for (const filename of path.split('/')) {
-		if (!filename || !dir) break;
-		parent = dir;
-		dir = dir[filename];
-	}
+	const { dir, parent } = getDir(root, path);
 
 	if (!dir) {
 		throw error(404, { message: 'Path not found' });
 	}
 
-	const is_path_to_audio = !Object.keys(dir).length && isAudio(path);
+	const is_path_to_file = !Object.keys(dir).length;
+	const is_path_to_audio = is_path_to_file && isAudio(path);
+
+	if (is_path_to_file && !is_path_to_audio) {
+		throw error(415, { message: 'Unsupported file type' });
+	}
+
 	const requested_song = is_path_to_audio ? getName(path, 1) : null;
 
 	const songs = is_path_to_audio
@@ -87,9 +95,11 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 	const images = [] as (Promise<string | null> | null)[];
 
 	for (const filename in listed_dir) {
+		const file = listed_dir[filename];
+
 		// If folder
-		if (Object.keys(listed_dir[filename]).length) {
-			const cover_path = findCover(listed_dir[filename], `${list.path}/${filename}`);
+		if (typeof file === 'object') {
+			const cover_path = findCover(file, `${list.path}/${filename}`);
 			images.push(cover_path ? getFileUrl(name, repo, branch, cover_path, fetch) : null);
 
 			list.files.push({
@@ -99,10 +109,35 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 				type: 'folder'
 			});
 		} else if (isAudio(filename)) {
+			let symlink = null as Song | null;
+
+			if (file === 120000) {
+				const path = await getSymlinkTarget(token, name, repo, `${list.path}/${filename}`, branch);
+
+				// If for some reason the symlink target is not found or doesn't point to a valid audio, skip it
+				if (!path || !isAudio(path)) continue;
+
+				const symlink_parent_path = getParentPath(path, 1);
+				const symlink_dir = getDir(root, symlink_parent_path).dir;
+
+				// If for some reason the symlink dir is not found, skip it
+				if (!symlink_dir) continue;
+
+				const cover_path = findCover(symlink_dir, symlink_parent_path);
+
+				images.push(cover_path ? getFileUrl(name, repo, branch, cover_path, fetch) : null);
+
+				symlink = {
+					path,
+					cover_path: cover_path || null,
+					display_name: removeExtension(filename)
+				};
+			}
+
 			list.files.push({
-				display_name: removeExtension(filename),
+				display_name: symlink?.display_name || removeExtension(filename),
 				filename,
-				cover_url: list.cover_url,
+				cover_url: null,
 				type: 'song'
 			});
 
@@ -113,8 +148,8 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 
 				songs.list.push({
 					display_name: removeExtension(filename),
-					path: `${list.path}/${filename}`,
-					cover_path: list.cover_path
+					path: symlink?.path || `${list.path}/${filename}`,
+					cover_path: symlink?.cover_path || list.cover_path
 				});
 			}
 		} else if (!list.cover_url && isImage(filename)) {
@@ -170,4 +205,24 @@ function isAudio(filename: string) {
 	 */
 	const supported = ['wav', 'mp3', 'mp4', 'adts', 'ogg', 'webm', 'flac'];
 	return supported.includes(filename.toLowerCase().split('.').at(-1) ?? '');
+}
+
+function getDir(root: Node, path: string): { dir: Node | null; parent: Node | null } {
+	let dir: Node | null = root;
+	let parent = null as Node | null;
+	for (const filename of path.split('/')) {
+		if (!filename || !dir) break;
+
+		parent = dir;
+
+		/**
+		 * What a lovely thing, TypeScript
+		 * @see https://github.com/microsoft/TypeScript/issues/10530
+		 */
+		const temp: Node | number | undefined = dir[filename];
+
+		dir = typeof temp === 'number' ? ({} as Node) : temp || null;
+	}
+
+	return { dir, parent };
 }
