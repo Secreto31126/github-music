@@ -46,14 +46,7 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 
 			// If last part and not a folder
 			if (i === parts.length - 1 && node.type !== 'tree') {
-				switch (node.mode) {
-					case '120000':
-						current[part] = 120000;
-						break;
-					case '100644':
-						current[part] = 100644;
-						break;
-				}
+				current[part] = parseInt(node.mode || '1');
 			} else {
 				if (!current[part]) {
 					current[part] = {} as Node;
