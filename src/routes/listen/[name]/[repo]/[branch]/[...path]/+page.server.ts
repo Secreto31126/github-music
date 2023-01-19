@@ -7,7 +7,7 @@ import type { File, Song } from '$lib/types';
 import type { PageServerLoad } from './$types';
 
 type Node = {
-	[path: string]: Node;
+	[path: string]: Node | number;
 };
 
 export const load = (async ({ params, cookies, setHeaders, fetch }) => {
@@ -41,11 +41,26 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 		const parts = node.path.split('/');
 
 		let current = root;
-		for (const part of parts) {
-			if (!current[part]) {
-				current[part] = {} as Node;
+		for (let i = 0; i < parts.length; i++) {
+			const part = parts[i];
+
+			// If last part and not a folder
+			if (i === parts.length - 1 && node.type !== 'tree') {
+				switch (node.mode) {
+					case '120000':
+						current[part] = 120000;
+						break;
+					case '100644':
+						current[part] = 100644;
+						break;
+				}
+			} else {
+				if (!current[part]) {
+					current[part] = {} as Node;
+				}
+
+				current = current[part] as Node;
 			}
-			current = current[part] as Node;
 		}
 	}
 
@@ -53,8 +68,16 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 	let parent = null as Node | null;
 	for (const filename of path.split('/')) {
 		if (!filename || !dir) break;
+
 		parent = dir;
-		dir = dir[filename];
+
+		/**
+		 * What a lovely thing, TypeScript
+		 * @see https://github.com/microsoft/TypeScript/issues/10530
+		 */
+		const temp: Node | number | undefined = dir[filename];
+
+		dir = typeof temp === 'number' ? ({} as Node) : temp;
 	}
 
 	if (!dir) {
@@ -87,9 +110,11 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 	const images = [] as (Promise<string | null> | null)[];
 
 	for (const filename in listed_dir) {
+		const file = listed_dir[filename];
+
 		// If folder
-		if (Object.keys(listed_dir[filename]).length) {
-			const cover_path = findCover(listed_dir[filename], `${list.path}/${filename}`);
+		if (typeof file === 'object') {
+			const cover_path = findCover(file, `${list.path}/${filename}`);
 			images.push(cover_path ? getFileUrl(name, repo, branch, cover_path, fetch) : null);
 
 			list.files.push({
