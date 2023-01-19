@@ -1,11 +1,11 @@
-import type { PageServerLoad } from './$types';
+import type { RequestHandler } from './$types';
 
 import { redirect } from '@sveltejs/kit';
 import { getUser } from '$lib/server/github';
 
 import { GITHUB_ID, GITHUB_SECRET } from '$env/static/private';
 
-export const load = (async ({ url, fetch, cookies }) => {
+export const GET = (async ({ url, fetch, cookies }) => {
 	const code = url.searchParams.get('code');
 
 	if (!code) {
@@ -42,4 +42,4 @@ export const load = (async ({ url, fetch, cookies }) => {
 	});
 
 	throw redirect(302, `/listen/${username}`);
-}) satisfies PageServerLoad;
+}) satisfies RequestHandler;
