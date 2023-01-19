@@ -1,18 +1,19 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import type { PageData } from './$types';
+	export let data: PageData;
 </script>
 
 <svelte:head>
-	<title>GitHub Music ({$page.data.username || 'User'})</title>
+	<title>GitHub Music ({data.username || 'User'})</title>
 </svelte:head>
 
 <div class="flex flex-col items-center">
-	{#if $page.data.avatar_url}
-		<span style="background-image: url('{$page.data.avatar_url}')" class="avatar" />
+	{#if data.avatar_url}
+		<span style="background-image: url('{data.avatar_url}')" class="avatar" />
 	{/if}
 	<p class="signedInText">
 		<small>Signed in as</small><br />
-		<strong>{$page.data.username}</strong>
+		<strong>{data.username}</strong>
 	</p>
 	<a href="/user/logout">Sign out</a>
 </div>
