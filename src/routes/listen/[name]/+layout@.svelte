@@ -12,7 +12,9 @@
 	<div class="flex gap-2 items-center justify-end mr-2">
 		<div class="text-right text-contrast">
 			<p class="font-bold">@{data.username || 'Unknown'}</p>
-			<a href="/listen/{$page.params.name}">Change repo</a>
+			{#if $page.params.repo}
+				<a href="/listen/{$page.params.name}">Change repo</a>
+			{/if}
 		</div>
 		{#if data.avatar_url}
 			<a href="/user" class="w-fit h-fit" title="Account">

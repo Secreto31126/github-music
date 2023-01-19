@@ -3,17 +3,16 @@ import { getRepoList, getRepoListOf } from '$lib/server/github';
 
 import type { PageServerLoad } from './$types';
 
-export const load = (async ({ cookies, params, parent, setHeaders }) => {
-	const { username } = await parent();
-
+export const load = (async ({ cookies, params, setHeaders }) => {
+	const username = cookies.get('username');
 	const token = cookies.get('access_token');
+	const avatar_url = cookies.get('avatar_url');
 
-	if (!token) {
+	if (!token || !username) {
 		throw redirect(302, '/login?error=Timed%20out');
 	}
 
 	const name = params.name;
-
 	const repos = name === username ? getRepoList(token) : getRepoListOf(token, name);
 
 	setHeaders({
@@ -22,6 +21,8 @@ export const load = (async ({ cookies, params, parent, setHeaders }) => {
 	});
 
 	return {
-		repos: (await repos).data.map((repo) => ({ name: repo.name, branch: repo.default_branch }))
+		repos: (await repos).data.map((repo) => ({ name: repo.name, branch: repo.default_branch })),
+		username,
+		avatar_url
 	};
 }) satisfies PageServerLoad;
