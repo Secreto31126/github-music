@@ -1,21 +1,20 @@
 <script lang="ts">
-	import { signOut } from '@auth/sveltekit/client';
 	import { page } from '$app/stores';
 </script>
 
 <svelte:head>
-	<title>GitHub Music ({$page.data.session?.user?.name || 'User'})</title>
+	<title>GitHub Music ({$page.data.username || 'User'})</title>
 </svelte:head>
 
-<div>
-	{#if $page.data.session?.user?.image}
-		<span style="background-image: url('{$page.data.session.user.image}')" class="avatar" />
+<div class="flex flex-col items-center">
+	{#if $page.data.avatar_url}
+		<span style="background-image: url('{$page.data.avatar_url}')" class="avatar" />
 	{/if}
 	<p class="signedInText">
 		<small>Signed in as</small><br />
-		<strong>{$page.data.session?.user?.email || $page.data.session?.user?.name}</strong>
+		<strong>{$page.data.username}</strong>
 	</p>
-	<button on:click={() => signOut()} class="button">Sign out</button>
+	<a href="/user/logout">Sign out</a>
 </div>
 
 <style>
@@ -31,10 +30,5 @@
 
 	.signedInText {
 		text-align: center;
-	}
-
-	.button {
-		display: block;
-		margin: 0 auto;
 	}
 </style>

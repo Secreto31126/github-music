@@ -11,12 +11,12 @@
 	</a>
 	<div class="flex gap-2 items-center justify-end mr-2">
 		<div class="text-right text-contrast">
-			<p class="font-bold">@{data.session?.user?.name}</p>
+			<p class="font-bold">@{data.username || 'Unknown'}</p>
 			<a href="/listen/{$page.params.name}">Change repo</a>
 		</div>
-		{#if data.session?.user?.image}
+		{#if data.avatar_url}
 			<a href="/user" class="w-fit h-fit" title="Account">
-				<img src={data.session.user.image} alt="Avatar" class="aspect-square w-10 rounded-full" />
+				<img src={data.avatar_url} alt="Avatar" class="aspect-square w-10 rounded-full" />
 			</a>
 		{/if}
 	</div>

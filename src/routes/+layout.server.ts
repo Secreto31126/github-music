@@ -1,21 +1,13 @@
-import type { Session } from '@auth/core/types';
 import type { LayoutServerLoad } from './$types';
 
-type UserData = Session & {
-	access_token?: string;
-};
+export const load = (async ({ cookies }) => {
+	const username = cookies.get('username');
+	const avatar_url = cookies.get('avatar_url');
+	const access_token = cookies.get('access_token');
 
-export const load = (async ({ locals, cookies }) => {
-	const session: UserData | null = await locals.getSession();
-
-	if (session?.access_token) {
-		cookies.set('access_token', session.access_token, {
-			maxAge: parseInt(session.expires),
-			path: '/'
-		});
+	if (username && avatar_url && access_token) {
+		return { username, avatar_url };
 	}
 
-	delete session?.access_token;
-
-	return { session };
+	return {};
 }) satisfies LayoutServerLoad;

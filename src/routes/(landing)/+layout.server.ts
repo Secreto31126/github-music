@@ -2,10 +2,10 @@ import type { LayoutServerLoad } from './$types';
 import { redirect } from '@sveltejs/kit';
 
 export const load = (async ({ parent, url }) => {
-	const { session } = await parent();
+	const { username } = await parent();
 
-	if (session?.user?.name) {
-		throw redirect(302, `/listen/${session.user.name}${url.search}`);
+	if (username) {
+		throw redirect(302, `/listen/${username}${url.search}`);
 	}
 	return {};
 }) satisfies LayoutServerLoad;

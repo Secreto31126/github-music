@@ -1,10 +1,10 @@
 import { redirect } from '@sveltejs/kit';
 import type { LayoutServerLoad } from './$types';
 
-export const load = (async ({ parent, cookies }) => {
-	const { session } = await parent();
+export const load = (async ({ parent }) => {
+	const { username } = await parent();
 
-	if (!session?.user?.name || !cookies.get('access_token')) {
+	if (!username) {
 		throw redirect(302, '/login?error=Timed%20out');
 	}
 

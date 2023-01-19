@@ -2,9 +2,9 @@ import type { PageServerLoad } from './$types';
 import { redirect } from '@sveltejs/kit';
 
 export const load = (async ({ parent }) => {
-	const { session } = await parent();
+	const { username } = await parent();
 
-	if (!session?.user) {
+	if (!username) {
 		throw redirect(302, '/login');
 	}
 	return {};

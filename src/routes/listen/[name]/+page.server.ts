@@ -4,7 +4,7 @@ import { getRepoList, getRepoListOf } from '$lib/server/github';
 import type { PageServerLoad } from './$types';
 
 export const load = (async ({ cookies, params, parent, setHeaders }) => {
-	const { session } = await parent();
+	const { username } = await parent();
 
 	const token = cookies.get('access_token');
 
@@ -14,7 +14,7 @@ export const load = (async ({ cookies, params, parent, setHeaders }) => {
 
 	const name = params.name;
 
-	const repos = name === session?.user?.name ? getRepoList(token) : getRepoListOf(token, name);
+	const repos = name === username ? getRepoList(token) : getRepoListOf(token, name);
 
 	setHeaders({
 		age: (await repos).headers.age?.toString() || '0',
