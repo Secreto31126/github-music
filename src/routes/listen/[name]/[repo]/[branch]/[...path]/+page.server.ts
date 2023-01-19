@@ -114,8 +114,8 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 			if (file === 120000) {
 				const path = await getSymlinkTarget(token, name, repo, `${list.path}/${filename}`, branch);
 
-				// If for some reason the symlink target is not found, skip it
-				if (!path) continue;
+				// If for some reason the symlink target is not found or doesn't point to a valid audio, skip it
+				if (!path || !isAudio(path)) continue;
 
 				const symlink_parent_path = getParentPath(path, 1);
 				const symlink_dir = getDir(root, symlink_parent_path).dir;
