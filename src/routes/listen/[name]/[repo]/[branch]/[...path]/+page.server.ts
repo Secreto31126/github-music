@@ -57,27 +57,19 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 		}
 	}
 
-	let dir: Node | undefined = root;
-	let parent = null as Node | null;
-	for (const filename of path.split('/')) {
-		if (!filename || !dir) break;
-
-		parent = dir;
-
-		/**
-		 * What a lovely thing, TypeScript
-		 * @see https://github.com/microsoft/TypeScript/issues/10530
-		 */
-		const temp: Node | number | undefined = dir[filename];
-
-		dir = typeof temp === 'number' ? ({} as Node) : temp;
-	}
+	const { dir, parent } = getDir(root, path);
 
 	if (!dir) {
 		throw error(404, { message: 'Path not found' });
 	}
 
-	const is_path_to_audio = !Object.keys(dir).length && isAudio(path);
+	const is_path_to_file = !Object.keys(dir).length;
+	const is_path_to_audio = is_path_to_file && isAudio(path);
+
+	if (is_path_to_file && !is_path_to_audio) {
+		throw error(415, { message: 'Unsupported file type' });
+	}
+
 	const requested_song = is_path_to_audio ? getName(path, 1) : null;
 
 	const songs = is_path_to_audio
@@ -188,4 +180,24 @@ function isAudio(filename: string) {
 	 */
 	const supported = ['wav', 'mp3', 'mp4', 'adts', 'ogg', 'webm', 'flac'];
 	return supported.includes(filename.toLowerCase().split('.').at(-1) ?? '');
+}
+
+function getDir(root: Node, path: string): { dir: Node | null; parent: Node | null } {
+	let dir: Node | null = root;
+	let parent = null as Node | null;
+	for (const filename of path.split('/')) {
+		if (!filename || !dir) break;
+
+		parent = dir;
+
+		/**
+		 * What a lovely thing, TypeScript
+		 * @see https://github.com/microsoft/TypeScript/issues/10530
+		 */
+		const temp: Node | number | undefined = dir[filename];
+
+		dir = typeof temp === 'number' ? ({} as Node) : temp || null;
+	}
+
+	return { dir, parent };
 }
