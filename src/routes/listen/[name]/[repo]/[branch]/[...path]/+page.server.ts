@@ -1,6 +1,6 @@
 import { error, redirect } from '@sveltejs/kit';
 import { getRepoStructure, getSymlinkTarget } from '$lib/server/github';
-import { getName, getParentPath, removeExtension } from '$lib/utils/paths';
+import { getExtension, getName, getParentPath, removeExtension } from '$lib/utils/paths';
 import getFileUrl from '$lib/utils/getFileUrl';
 
 import type { File, Song } from '$lib/types';
@@ -196,7 +196,7 @@ function findCover(dir: Node, path: string): string | null {
 
 function isImage(filename: string) {
 	const supported = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-	return supported.includes(filename.toLowerCase().split('.').at(-1) ?? '');
+	return supported.includes(getExtension(filename) ?? '');
 }
 
 function isAudio(filename: string) {
@@ -204,7 +204,7 @@ function isAudio(filename: string) {
 	 * @see https://en.wikipedia.org/wiki/HTML5_audio#Supported_audio_coding_formats
 	 */
 	const supported = ['wav', 'mp3', 'mp4', 'adts', 'ogg', 'webm', 'flac'];
-	return supported.includes(filename.toLowerCase().split('.').at(-1) ?? '');
+	return supported.includes(getExtension(filename) ?? '');
 }
 
 function getDir(root: Node, path: string): { dir: Node | null; parent: Node | null } {
