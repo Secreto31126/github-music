@@ -1,5 +1,5 @@
 import { error, redirect } from '@sveltejs/kit';
-import { getRepoStructure } from '$lib/server/github';
+import { getRepoStructure, getSymlinkTarget } from '$lib/server/github';
 import { getName, getParentPath, removeExtension } from '$lib/utils/paths';
 import getFileUrl from '$lib/utils/getFileUrl';
 
@@ -109,10 +109,35 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 				type: 'folder'
 			});
 		} else if (isAudio(filename)) {
+			let symlink = null as Song | null;
+
+			if (file === 120000) {
+				const path = await getSymlinkTarget(token, name, repo, `${list.path}/${filename}`, branch);
+
+				// If for some reason the symlink target is not found, skip it
+				if (!path) continue;
+
+				const symlink_parent_path = getParentPath(path, 1);
+				const symlink_dir = getDir(root, symlink_parent_path).dir;
+
+				// If for some reason the symlink dir is not found, skip it
+				if (!symlink_dir) continue;
+
+				const cover_path = findCover(symlink_dir, symlink_parent_path);
+
+				images.push(cover_path ? getFileUrl(name, repo, branch, cover_path, fetch) : null);
+
+				symlink = {
+					path,
+					cover_path: cover_path || null,
+					display_name: removeExtension(filename)
+				};
+			}
+
 			list.files.push({
-				display_name: removeExtension(filename),
+				display_name: symlink?.display_name || removeExtension(filename),
 				filename,
-				cover_url: list.cover_url,
+				cover_url: null,
 				type: 'song'
 			});
 
@@ -123,8 +148,8 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 
 				songs.list.push({
 					display_name: removeExtension(filename),
-					path: `${list.path}/${filename}`,
-					cover_path: list.cover_path
+					path: symlink?.path || `${list.path}/${filename}`,
+					cover_path: symlink?.cover_path || list.cover_path
 				});
 			}
 		} else if (!list.cover_url && isImage(filename)) {
