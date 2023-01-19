@@ -213,6 +213,8 @@ function getDir(root: Node, path: string): { dir: Node | null; parent: Node | nu
 	for (const filename of path.split('/')) {
 		if (!filename || !dir) break;
 
+		if (filename === '.') continue;
+
 		parent = dir;
 
 		/**
