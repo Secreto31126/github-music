@@ -1,8 +1,7 @@
 import { error, redirect } from '@sveltejs/kit';
 import { getRepoStructure, getSymlinkTarget } from '$lib/server/github';
-import { getName, getParentPath, removeExtension } from '$lib/utils/paths';
 import getFileUrl from '$lib/utils/getFileUrl';
-import { normalize, join, extname } from 'path/posix';
+import { normalize, join, extname, basename, dirname, parse } from 'path/posix';
 
 import type { File, Song } from '$lib/types';
 import type { PageServerLoad } from './$types';
@@ -78,7 +77,7 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 		throw error(415, { message: 'Unsupported file type' });
 	}
 
-	const requested_song = is_path_to_audio ? getName(path, 1) : null;
+	const requested_song = is_path_to_audio ? basename(path) : null;
 
 	const songs = is_path_to_audio
 		? {
@@ -89,8 +88,8 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 
 	const list = {
 		root: parent === null,
-		name: parent === null ? '/' : getName(path, is_path_to_audio ? 2 : 1) || '/',
-		path: is_path_to_audio ? getParentPath(path, 1) : path,
+		name: parent === null ? '/' : basename(is_path_to_audio ? dirname(path) : path),
+		path: is_path_to_audio ? dirname(path) : path,
 		cover_url: null as string | null,
 		cover_path: null as string | null,
 		files: [] as Array<File>
@@ -118,6 +117,8 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 				type: 'folder'
 			});
 		} else if (isAudio(filename)) {
+			const display_name = parse(filename).name;
+
 			let symlink = null as Song | null;
 
 			if (file === 120000) {
@@ -128,7 +129,7 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 
 				const path = normalize(join(list.path, target));
 
-				const symlink_parent_path = getParentPath(path, 1);
+				const symlink_parent_path = dirname(path);
 				const { found, dir: symlink_dir } = getDir(root, symlink_parent_path);
 
 				// If for some reason the symlink dir is not found, skip it
@@ -141,12 +142,12 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 				symlink = {
 					path,
 					cover_path: cover_path || null,
-					display_name: removeExtension(filename)
+					display_name
 				};
 			}
 
 			list.files.push({
-				display_name: symlink?.display_name || removeExtension(filename),
+				display_name,
 				filename,
 				cover_url: null,
 				type: 'song'
@@ -158,7 +159,7 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 				}
 
 				songs.list.push({
-					display_name: removeExtension(filename),
+					display_name,
 					path: symlink?.path || join(list.path, filename),
 					cover_path: symlink?.cover_path || list.cover_path
 				});
