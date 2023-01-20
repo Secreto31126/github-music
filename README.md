@@ -29,7 +29,7 @@ Visit [https://github-music.vercel.app](https://github-music.vercel.app), go thr
 
 ### How to include images
 
-The app will look for images within the folder contents. Songs will pick the images at same level
+The app will look for images within the folder contents. Songs will pick the images at same level, while symlinks will search in their origins.
 
 ### Small UX things that will change
 
