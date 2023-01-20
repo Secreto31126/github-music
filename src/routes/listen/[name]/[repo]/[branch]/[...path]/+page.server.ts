@@ -99,7 +99,8 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 	const cwd = dir ?? parent ?? root;
 
 	// Here are stored the images' promises to later fill list.files[].cover_url
-	const images = [] as (Promise<string | null> | null)[];
+	const images_promises = {} as Record<string, Promise<string | null>>;
+	const images_paths = [] as (string | null)[];
 
 	for (const filename in cwd) {
 		const file = cwd[filename];
@@ -108,7 +109,12 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 			if (filename === '.' || filename === '..') continue;
 
 			const cover_path = findCover(file, join(list.path, filename));
-			images.push(cover_path ? getFileUrl(name, repo, branch, cover_path, fetch) : null);
+
+			images_paths.push(cover_path);
+			if (cover_path) {
+				// Thanks Fireship ;)
+				images_promises[cover_path] ||= getFileUrl(name, repo, branch, cover_path, fetch);
+			}
 
 			list.files.push({
 				display_name: filename,
@@ -137,7 +143,10 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 
 				const cover_path = findCover(symlink_dir, symlink_parent_path);
 
-				images.push(cover_path ? getFileUrl(name, repo, branch, cover_path, fetch) : null);
+				images_paths.push(cover_path);
+				if (cover_path) {
+					images_promises[cover_path] ||= getFileUrl(name, repo, branch, cover_path, fetch);
+				}
 
 				symlink = {
 					path,
@@ -170,9 +179,13 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 		}
 	}
 
-	let i = 0;
-	for (const cover of await Promise.all(images)) {
-		list.files[i++].cover_url = cover;
+	await Promise.all(Object.values(images_promises));
+
+	for (let i = 0; i < images_paths.length; i++) {
+		const cover = images_paths[i];
+		if (cover) {
+			list.files[i].cover_url = await images_promises[cover];
+		}
 	}
 
 	// Fill missing covers
