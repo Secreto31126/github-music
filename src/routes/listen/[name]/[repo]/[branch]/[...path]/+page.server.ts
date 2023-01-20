@@ -2,13 +2,21 @@ import { error, redirect } from '@sveltejs/kit';
 import { getRepoStructure, getSymlinkTarget } from '$lib/server/github';
 import { getExtension, getName, getParentPath, removeExtension } from '$lib/utils/paths';
 import getFileUrl from '$lib/utils/getFileUrl';
+import { normalize, join } from 'path/posix';
 
 import type { File, Song } from '$lib/types';
 import type { PageServerLoad } from './$types';
 
-type Node = {
-	[path: string]: Node | number;
-};
+class Folder {
+	readonly '.': Folder;
+	readonly '..': Folder;
+	[path: string]: Folder | number;
+
+	constructor(parent?: Folder) {
+		this['.'] = this;
+		this['..'] = parent ?? this;
+	}
+}
 
 export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 	const name = params.name;
@@ -34,7 +42,7 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 		throw error(404, { message: 'Repo not found' });
 	}
 
-	const root = {} as Node;
+	const root = new Folder();
 	for (const node of tree) {
 		if (!node.path || !node.type) continue;
 
@@ -49,21 +57,21 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 				current[part] = parseInt(node.mode || '1');
 			} else {
 				if (!current[part]) {
-					current[part] = {} as Node;
+					current[part] = new Folder(current);
 				}
 
-				current = current[part] as Node;
+				current = current[part] as Folder;
 			}
 		}
 	}
 
-	const { dir, parent } = getDir(root, path);
+	const { found, dir, parent } = getDir(root, path);
 
-	if (!dir) {
+	if (!found) {
 		throw error(404, { message: 'Path not found' });
 	}
 
-	const is_path_to_file = !Object.keys(dir).length;
+	const is_path_to_file = !(dir instanceof Folder);
 	const is_path_to_audio = is_path_to_file && isAudio(path);
 
 	if (is_path_to_file && !is_path_to_audio) {
@@ -89,17 +97,18 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 	};
 
 	// If the path is to a song, use the parent folder
-	const listed_dir = is_path_to_audio ? parent || root : dir;
+	const cwd = dir ?? parent ?? root;
 
 	// Here are stored the images' promises to later fill list.files[].cover_url
 	const images = [] as (Promise<string | null> | null)[];
 
-	for (const filename in listed_dir) {
-		const file = listed_dir[filename];
+	for (const filename in cwd) {
+		const file = cwd[filename];
 
-		// If folder
-		if (typeof file === 'object') {
-			const cover_path = findCover(file, `${list.path}/${filename}`);
+		if (file instanceof Folder) {
+			if (filename === '.' || filename === '..') continue;
+
+			const cover_path = findCover(file, join(list.path, filename));
 			images.push(cover_path ? getFileUrl(name, repo, branch, cover_path, fetch) : null);
 
 			list.files.push({
@@ -112,20 +121,24 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 			let symlink = null as Song | null;
 
 			if (file === 120000) {
-				const path = await getSymlinkTarget(token, name, repo, `${list.path}/${filename}`, branch);
+				const target = await getSymlinkTarget(token, name, repo, join(list.path, filename), branch);
 
 				// If for some reason the symlink target is not found or doesn't point to a valid audio, skip it
-				if (!path || !isAudio(path)) continue;
+				if (!target || !isAudio(target)) continue;
+
+				const path = normalize(join(list.path, target));
 
 				const symlink_parent_path = getParentPath(path, 1);
-				const symlink_dir = getDir(root, symlink_parent_path).dir;
+				const { found, dir: symlink_dir } = getDir(root, symlink_parent_path);
 
 				// If for some reason the symlink dir is not found, skip it
-				if (!symlink_dir) continue;
+				if (!found || !symlink_dir) continue;
 
 				const cover_path = findCover(symlink_dir, symlink_parent_path);
 
-				images.push(cover_path ? getFileUrl(name, repo, branch, cover_path, fetch) : null);
+				images.push(
+					cover_path ? getFileUrl(name, repo, branch, normalize(cover_path), fetch) : null
+				);
 
 				symlink = {
 					path,
@@ -148,13 +161,13 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 
 				songs.list.push({
 					display_name: removeExtension(filename),
-					path: symlink?.path || `${list.path}/${filename}`,
+					path: symlink?.path || join(list.path, filename),
 					cover_path: symlink?.cover_path || list.cover_path
 				});
 			}
 		} else if (!list.cover_url && isImage(filename)) {
-			list.cover_path = `${list.path}/${filename}`;
-			list.cover_url = await getFileUrl(name, repo, branch, `${list.path}/${filename}`, fetch);
+			list.cover_path = join(list.path, filename);
+			list.cover_url = await getFileUrl(name, repo, branch, join(list.path, filename), fetch);
 		}
 	}
 
@@ -184,10 +197,10 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 	};
 }) satisfies PageServerLoad;
 
-function findCover(dir: Node, path: string): string | null {
+function findCover(dir: Folder, path: string): string | null {
 	for (const subfile in dir) {
 		if (isImage(subfile)) {
-			return `${path}/${subfile}`;
+			return join(path, subfile);
 		}
 	}
 
@@ -207,13 +220,18 @@ function isAudio(filename: string) {
 	return supported.includes(getExtension(filename) ?? '');
 }
 
-function getDir(root: Node, path: string): { dir: Node | null; parent: Node | null } {
-	let dir: Node | null = root;
-	let parent = null as Node | null;
+function getDir(
+	start: Folder,
+	path: string
+): { found: boolean; dir: Folder | null; parent: Folder | null } {
+	let dir = start as Folder | null;
+	let parent = null as Folder | null;
 	for (const filename of path.split('/')) {
 		if (!filename || !dir) break;
 
-		if (filename === '.') continue;
+		if (!Object.prototype.hasOwnProperty.call(dir, filename)) {
+			return { found: false, dir, parent };
+		}
 
 		parent = dir;
 
@@ -221,10 +239,11 @@ function getDir(root: Node, path: string): { dir: Node | null; parent: Node | nu
 		 * What a lovely thing, TypeScript
 		 * @see https://github.com/microsoft/TypeScript/issues/10530
 		 */
-		const temp: Node | number | undefined = dir[filename];
+		const temp: Folder | number = dir[filename];
 
-		dir = typeof temp === 'number' ? ({} as Node) : temp || null;
+		dir = temp instanceof Folder ? temp : null;
 	}
 
-	return { dir, parent };
+	// dir === null means the path is to a file
+	return { found: true, dir, parent };
 }
