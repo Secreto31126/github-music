@@ -136,9 +136,7 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 
 				const cover_path = findCover(symlink_dir, symlink_parent_path);
 
-				images.push(
-					cover_path ? getFileUrl(name, repo, branch, normalize(cover_path), fetch) : null
-				);
+				images.push(cover_path ? getFileUrl(name, repo, branch, cover_path, fetch) : null);
 
 				symlink = {
 					path,
