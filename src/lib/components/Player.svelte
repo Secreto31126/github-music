@@ -23,7 +23,7 @@
 
 	let name_strcpy: string;
 	$: if (songs) {
-		name_strcpy = songs[index].display_name;
+		name_strcpy = songs[index]?.display_name || '';
 	}
 
 	let player: HTMLAudioElement;
