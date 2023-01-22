@@ -11,9 +11,10 @@ class Folder {
 	readonly '..': Folder;
 	[path: string]: Folder | number;
 
-	constructor(parent?: Folder) {
+	constructor(root?: Folder, parent?: Folder) {
 		this['.'] = this;
 		this['..'] = parent ?? this;
+		this[''] = root ?? this;
 	}
 }
 
@@ -56,7 +57,7 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 				current[part] = parseInt(node.mode || '1');
 			} else {
 				if (!current[part]) {
-					current[part] = new Folder(current);
+					current[part] = new Folder(root, current);
 				}
 
 				current = current[part] as Folder;
@@ -106,7 +107,7 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 		const file = cwd[filename];
 
 		if (file instanceof Folder) {
-			if (filename === '.' || filename === '..') continue;
+			if (['', '.', '..'].includes(filename)) continue;
 
 			const cover_path = findCover(file, join(list.path, filename));
 
@@ -239,7 +240,7 @@ function getDir(
 	let dir = start as Folder | null;
 	let parent = null as Folder | null;
 	for (const filename of path.split('/')) {
-		if (!filename || !dir) break;
+		if (!dir) break;
 
 		if (!Object.prototype.hasOwnProperty.call(dir, filename)) {
 			return { found: false, dir, parent };
