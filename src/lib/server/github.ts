@@ -58,17 +58,22 @@ export async function getSymlinkTarget(
 	try {
 		const request = await getRepoFile(auth, owner, repo, path, ref);
 
-		/**
-		 * Ironic, data.type === "symlink" isn't our supported symlink type
-		 * @see https://docs.github.com/en/rest/repos/contents?apiVersion=2022-11-28#if-the-content-is-a-symlink
-		 */
-		if (Array.isArray(request.data) || request.data.type !== 'file' || !request.data.download_url) {
+		if (Array.isArray(request.data)) {
 			return null;
 		}
 
+		// Just hope the user isn't wrong and the symlink targets a file
+		if (request.data.type === 'symlink') {
+			return request.data.target || null;
+		}
+
 		// Just hope the user isn't wrong and the file is a symlink
-		const response = await fetch(request.data.download_url);
-		return await response.text();
+		if (request.data.type === 'file' && request.data.download_url) {
+			const response = await fetch(request.data.download_url);
+			return (await response.text()) || null;
+		}
+
+		return null;
 	} catch (error) {
 		return null;
 	}

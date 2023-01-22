@@ -1,7 +1,7 @@
 import { error, redirect } from '@sveltejs/kit';
 import { getRepoStructure, getSymlinkTarget } from '$lib/server/github';
 import getFileUrl from '$lib/utils/getFileUrl';
-import { normalize, join, extname, basename, dirname, parse } from 'path/posix';
+import { normalize, join, extname, basename, dirname, parse, isAbsolute } from 'path/posix';
 
 import type { File, Song } from '$lib/types';
 import type { PageServerLoad } from './$types';
@@ -133,7 +133,7 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 				// If for some reason the symlink target is not found or doesn't point to a valid audio, skip it
 				if (!target || !isAudio(target)) continue;
 
-				const path = normalize(join(list.path, target));
+				const path = normalize(isAbsolute(target) ? target.slice(1) : join(list.path, target));
 
 				const symlink_parent_path = dirname(path);
 				const { found, dir: symlink_dir } = getDir(root, symlink_parent_path);
@@ -239,7 +239,8 @@ function getDir(
 	let dir = start as Folder | null;
 	let parent = null as Folder | null;
 	for (const filename of path.split('/')) {
-		if (!filename || !dir) break;
+		if (!dir) break;
+		if (!filename) continue;
 
 		if (!Object.prototype.hasOwnProperty.call(dir, filename)) {
 			return { found: false, dir, parent };
