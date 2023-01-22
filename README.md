@@ -18,7 +18,7 @@ Visit [https://github-music.vercel.app](https://github-music.vercel.app), go thr
    - ogg
    - webm
    - flac
-   - Symbolic links to supported audio files
+   - [Symbolic links to supported audio files](#symlinks)
 
 2. Images:
    - jpg
@@ -30,6 +30,17 @@ Visit [https://github-music.vercel.app](https://github-music.vercel.app), go thr
 ### How to include images
 
 The app will look for images within the folder contents. Songs will pick the images at same level, while symlinks will search in their origins.
+
+### Symlinks
+
+Symlinks have an interesting behavior. All _valid_ symlinks will work as expected. However, due to GitHub's API interpretation of "valid symlink to file", performance will be heavily affected. Hence the support for _invalid_ symlinks.
+
+- Valid symlinks are those that point to a file that exists in the repository and have a relative path to it.
+- Invalid symlinks are those that point to a file that **does** exist in the repository, but have an absolute path to it (aka, starts with "/"), where root is the root of the repository.
+
+Although invalid symlinks won't work in a local environment, they will work in GitHub Music.
+
+It's up to you to decide if you want compatibility or performance.
 
 ### Small UX things that will change
 
