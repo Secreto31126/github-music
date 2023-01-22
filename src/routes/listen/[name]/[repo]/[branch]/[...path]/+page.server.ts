@@ -135,13 +135,17 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 
 				const path = normalize(isAbsolute(target) ? target.slice(1) : join(list.path, target));
 
-				const symlink_parent_path = dirname(path);
-				const { found, dir: symlink_dir } = getDir(root, symlink_parent_path);
+				const linked_parent_path = dirname(path);
+				const { found, dir: linked_dir } = getDir(root, linked_parent_path);
 
 				// If for some reason the symlink dir is not found, skip it
-				if (!found || !symlink_dir) continue;
+				if (!found || !linked_dir) continue;
 
-				const cover_path = findCover(symlink_dir, symlink_parent_path);
+				// If the symlink points to a folder or another link, skip it
+				const linked = linked_dir[basename(path)];
+				if (linked instanceof Folder || linked === 120000) continue;
+
+				const cover_path = findCover(linked_dir, linked_parent_path);
 
 				images_paths.push(cover_path);
 				if (cover_path) {
