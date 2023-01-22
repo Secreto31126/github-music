@@ -104,11 +104,12 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 
 	for (const filename in cwd) {
 		const file = cwd[filename];
+		const file_path = join(list.path, filename);
 
 		if (file instanceof Folder) {
 			if (filename === '.' || filename === '..') continue;
 
-			const cover_path = findCover(file, join(list.path, filename));
+			const cover_path = findCover(file, file_path);
 
 			images_paths.push(cover_path);
 			if (cover_path) {
@@ -128,7 +129,7 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 			let symlink = null as Song | null;
 
 			if (file === 120000) {
-				const target = await getSymlinkTarget(token, name, repo, join(list.path, filename), branch);
+				const target = await getSymlinkTarget(token, name, repo, file_path, branch);
 
 				// If for some reason the symlink target is not found or doesn't point to a valid audio, skip it
 				if (!target || !isAudio(target)) continue;
@@ -173,13 +174,13 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 
 				songs.list.push({
 					display_name,
-					path: symlink?.path || join(list.path, filename),
+					path: symlink?.path || file_path,
 					cover_path: symlink?.cover_path || list.cover_path
 				});
 			}
 		} else if (!list.cover_url && isImage(filename)) {
-			list.cover_path = join(list.path, filename);
-			list.cover_url = await getFileUrl(name, repo, branch, join(list.path, filename), fetch);
+			list.cover_path = file_path;
+			list.cover_url = await getFileUrl(name, repo, branch, file_path, fetch);
 		}
 	}
 
