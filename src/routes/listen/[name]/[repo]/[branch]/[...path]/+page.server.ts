@@ -104,11 +104,12 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 
 	for (const filename in cwd) {
 		const file = cwd[filename];
+		const file_path = join(list.path, filename);
 
 		if (file instanceof Folder) {
 			if (filename === '.' || filename === '..') continue;
 
-			const cover_path = findCover(file, join(list.path, filename));
+			const cover_path = findCover(file, file_path);
 
 			images_paths.push(cover_path);
 			if (cover_path) {
@@ -128,20 +129,24 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 			let symlink = null as Song | null;
 
 			if (file === 120000) {
-				const target = await getSymlinkTarget(token, name, repo, join(list.path, filename), branch);
+				const target = await getSymlinkTarget(token, name, repo, file_path, branch);
 
 				// If for some reason the symlink target is not found or doesn't point to a valid audio, skip it
 				if (!target || !isAudio(target)) continue;
 
 				const path = normalize(isAbsolute(target) ? target.slice(1) : join(list.path, target));
 
-				const symlink_parent_path = dirname(path);
-				const { found, dir: symlink_dir } = getDir(root, symlink_parent_path);
+				const linked_parent_path = dirname(path);
+				const { found, dir: linked_dir } = getDir(root, linked_parent_path);
 
 				// If for some reason the symlink dir is not found, skip it
-				if (!found || !symlink_dir) continue;
+				if (!found || !linked_dir) continue;
 
-				const cover_path = findCover(symlink_dir, symlink_parent_path);
+				// If the symlink points to a folder or another link, skip it
+				const linked = linked_dir[basename(path)];
+				if (linked instanceof Folder || linked === 120000) continue;
+
+				const cover_path = findCover(linked_dir, linked_parent_path);
 
 				images_paths.push(cover_path);
 				if (cover_path) {
@@ -169,13 +174,13 @@ export const load = (async ({ params, cookies, setHeaders, fetch }) => {
 
 				songs.list.push({
 					display_name,
-					path: symlink?.path || join(list.path, filename),
+					path: symlink?.path || file_path,
 					cover_path: symlink?.cover_path || list.cover_path
 				});
 			}
 		} else if (!list.cover_url && isImage(filename)) {
-			list.cover_path = join(list.path, filename);
-			list.cover_url = await getFileUrl(name, repo, branch, join(list.path, filename), fetch);
+			list.cover_path = file_path;
+			list.cover_url = await getFileUrl(name, repo, branch, file_path, fetch);
 		}
 	}
 
