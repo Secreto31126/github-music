@@ -11,7 +11,6 @@ Visit [https://github-music.vercel.app](https://github-music.vercel.app), go thr
 ### Supported files
 
 1. Audios:
-
    - wav
    - mp3
    - mp4
