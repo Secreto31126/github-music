@@ -6,10 +6,12 @@
 	<slot />
 </div>
 
-a {
-	-webkit-tap-highlight-color: rgba(0,0,0,0);
-	-webkit-user-select: none;
-	-khtml-user-select: none;
-	-moz-user-select: none;
-	-ms-user-select: none;
-}
+<style>
+	a {
+		-webkit-tap-highlight-color: transparent;
+		-webkit-user-select: none;
+		-khtml-user-select: none;
+		-moz-user-select: none;
+		-ms-user-select: none;
+	}
+</style>
